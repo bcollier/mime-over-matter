@@ -66,6 +66,34 @@ create a new repo for this project
 ```
 **What came back:** the AI set up a local git repo for the project. Creating the public GitHub repo was blocked at first by a Claude Code permission check. I added a permission rule allowing `gh repo create`, and then the AI created the repo.
 
+### Prompts 6 to 8 (repo setup)
+```
+how do I change this settin I couldn’t create the GitHub repo: a permission check blocked me from making a public repo.
+```
+```
+ok persmissions changed
+```
+```
+all three
+```
+**What came back:** instructions for adding the permission rule. After I added it, the AI created the GitHub repo, committed `SPEC.md` alone as the first commit, committed this log second, and pushed.
+
+### Prompt 9
+```
+this seems like more detail than needed
+
+* 10 health points (HP). Starts every game at 10. Health never goes above 10.
+* Walks at 240 px/second. Jump apex is about 130 px above where he jumped from. Normal jumps can reach platforms up to 110 px higher than the one he's on.
+* Base attack is a punch: 1 damage, reaches 40 px in front of Pierre, can be used at most once every 0.3 seconds, shows "POW!" on hit.
+* After taking damage, Pierre is invincible for 1.0 second and flashes during that time. He is knocked back 60 px away from the source.
+* When Pierre takes damage, an empty speech bubble (or one containing "…") pops up over his head for 1 second.
+* At 0 HP: Game Over. 
+
+
+be more broad about what the gameplay is like. specifiying pixels per second seems overkill
+```
+**What came back:** a revised `SPEC.md` that describes how the gameplay should feel instead of exact values. Pixel distances, speeds, cooldowns, HP numbers, and exact odds were replaced with broad descriptions (e.g. "takes about ten hits", "mostly sandwiches"). A few rough numbers that define the main mechanic were kept: about 2 seconds to draw a clown, about 10 hammer swings, 6 panels. Section 8 now tells the builder to choose the exact values and keep them in one place.
+
 ### Who decided what (for my Phase 2 partner)
 - **My decisions:** comic-book platformer inspired by Comix Zone; a hand drawing enemies while you play and a second hand drawing help; enemies can't hurt you until fully drawn; an optional countdown; hurting the hand as a stretch goal (it shows pain, shakes it off, leaves); the helper hand mainly draws sandwiches when you're losing, sometimes at random, and before rooms with lots of enemies; the hammer does extra damage and can hurt the hand; throwing knives instead of a gun; balloon sword, pogo stick, and slinky as fun weapons; the animal helper as a stretch goal; you lose when health runs out; a mime pulled into a comic full of clowns; a light and fun "odd duck" tone.
-- **Drafted by the AI and approved by me:** the story and character names, the six clown types and what each one does, the Invisible Dog as the animal helper, what the slinky does, the "CANCELLED!" game-over stamp, and all the exact numbers (HP, speeds, timings, odds, panel contents). Section 8 of the spec says the numbers are tuning values your partner can change.
+- **Drafted by the AI and approved by me:** the story and character names, the six clown types and what each one does, the Invisible Dog as the animal helper, what the slinky does, the "CANCELLED!" game-over stamp, the panel contents, and the few rough numbers left in the spec. I decided the spec should describe feel rather than exact values (Prompt 9), so exact speeds, damage, and timings are left to whoever builds it.

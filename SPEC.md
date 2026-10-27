@@ -1,6 +1,6 @@
 # Mime Over Matter: Game Spec
 
-A side-scrolling comic-book brawler-platformer. A silent street mime is trapped inside a comic full of clowns, and the cartoonist's hands draw the level while you play: the right hand draws clowns to stop you, and the left hand secretly draws things to help you.
+A comic-book brawler-platformer played panel by panel. A silent street mime is trapped inside a comic full of clowns, and the cartoonist's hands draw the level while you play: the right hand draws clowns to stop you, and the left hand secretly draws things to help you.
 
 Inspired by *Comix Zone* (Sega Genesis, 1995). What's different here: **two** drawing hands with opposite goals, everything appears in real time as the hand draws it, and the whole thing is a joke about a mime at a clown convention.
 
@@ -16,7 +16,7 @@ Furious, Chuckles sketches Pierre into the gutter of his drawing board, the blan
 
 But Chuckles is right-handed, and **his left hand has had enough.** It sneaks into panels and draws Pierre what he needs: sandwiches, a squeaky hammer, throwing knives, whatever's lying around in a cartoonist's imagination. Pierre's only way out is to fight through to the last panel, the one that says **THE END**.
 
-This story should appear in the game as a short title/intro screen (see criterion 1).
+This story should appear in the game as a short title/intro screen (see criterion 2).
 
 ## 2. Feel
 
@@ -28,12 +28,11 @@ It should never feel scary or punishing. Getting hit is slapstick: a comic "BONK
 
 Simple shapes are fine. A consistent comic style matters more than detailed art.
 
-- **Canvas:** 960 × 540 pixels.
-- **Panels:** each level screen is one comic panel with a thick black border (6 px) and a white gutter around it, like a page of a comic.
-- **Outlines:** every character and object has a thick black outline (3 px).
+- **Panels:** each level screen is one comic panel with a thick black border and a white gutter around it, like a page of a comic.
+- **Outlines:** every character and object has a thick black outline.
 - **Colors:** Pierre is only black, white, and grey (striped shirt, white face, black beret). Clowns and their props use loud primary colors (red, yellow, blue, green). The panel background is a pale halftone dot pattern.
 - **Hands:** each hand is a large cartoon hand, drawn bigger than Pierre. The right hand holds a black ink pen. The left hand holds a fat colored crayon and moves a little wobbly and clumsy.
-- **Impact text:** hits show comic burst text ("POW!", "BONK!", "SQUEAK!", "POP!") for 0.3 seconds.
+- **Impact text:** hits show a quick comic burst ("POW!", "BONK!", "SQUEAK!", "POP!").
 
 ## 4. Controls
 
@@ -50,20 +49,14 @@ Simple shapes are fine. A consistent comic style matters more than detailed art.
 ## 5. How the game works
 
 ### 5.1 Pierre
-- 10 health points (HP). Starts every game at 10. Health never goes above 10.
-- Walks at 240 px/second. Jump apex is about 130 px above where he jumped from. Normal jumps can reach platforms up to 110 px higher than the one he's on.
-- Base attack is a **punch**: 1 damage, reaches 40 px in front of Pierre, can be used at most once every 0.3 seconds, shows "POW!" on hit.
-- After taking damage, Pierre is invincible for 1.0 second and flashes during that time. He is knocked back 60 px away from the source.
-- When Pierre takes damage, an empty speech bubble (or one containing "…") pops up over his head for 1 second.
-- At 0 HP: Game Over.
+Pierre moves like a classic arcade platformer hero: quick and responsive, with a slightly floaty, cartoonish jump. Without items, he fights with his fists: a short-range punch with a "POW!".
+
+He can take about ten hits before going down. Getting hit is slapstick: a little knockback, a moment of flashing invincibility so he can't be hit twice in a row, and an empty speech bubble (he's a mime; he can't complain). When his health runs out, it's Game Over.
 
 ### 5.2 Panels and progression
-- The game is one comic **page** of **6 panels**: 5 fighting panels plus a final **THE END** panel.
-- Each panel is one fixed screen. No scrolling camera.
-- Pierre starts each panel at the left edge.
-- The right edge of the panel is **blocked by a thick ink line** until every clown in the panel is defeated. When the last clown is defeated, the ink line disappears and a "→" arrow appears at the right edge. Walking off the right edge moves to the next panel.
-- Panel number is shown in the HUD as "Panel 2 / 6".
-- Reaching the THE END panel wins the game. Pierre takes a silent bow, the words "THE END" are drawn across the panel, and "Press R to play again" appears.
+The game is one comic **page** of **6 panels**: 5 fighting panels plus a final **THE END** panel. Each panel is one fixed screen, with no scrolling. Pierre enters on the left, and the right edge is **blocked by a thick ink line** until every clown in the panel is defeated. Then the line disappears, an arrow appears, and walking off the right edge takes Pierre to the next panel.
+
+Reaching THE END wins the game: Pierre takes a silent bow, "THE END" is drawn across the panel, and the player can press R to play again.
 
 Panel contents (core version, using only the two core clowns):
 
@@ -79,77 +72,58 @@ Panel contents (core version, using only the two core clowns):
 When stretch clowns are added, swap them into panels 3 to 5 so each panel introduces at most one new clown type.
 
 ### 5.3 The right hand (enemy artist)
-- When Pierre enters a panel, the right hand enters from the top edge of the screen and draws that panel's clowns **one at a time**, in the order listed in the panel's data.
-- For each clown: the hand moves to the clown's spawn point over 0.5 seconds, then draws it over **2.0 seconds**:
-  - first 1.2 seconds: the black outline appears gradually (for example, a wipe from left to right, with the pen tip following the edge of the wipe)
-  - last 0.8 seconds: the color fills in
-- **A clown that is still being drawn cannot hurt Pierre and cannot be hurt.** It doesn't move, and attacks pass through it.
-- When the drawing finishes, the clown becomes active immediately and shows a speech bubble for 1.5 seconds (random from: "HONK!", "HAW HAW!", "NICE FACE PAINT!", "SAY SOMETHING!").
-- After the last clown is drawn, the hand exits off the top of the screen.
-- **Optional:** a small countdown ("3… 2… 1…" or a shrinking ring) over a clown that's being drawn.
+When Pierre enters a panel, the right hand reaches in from the top of the screen and draws that panel's clowns **one at a time**. Each drawing takes **about 2 seconds**: the black outline appears gradually, with the pen tip moving along it, then the color fills in.
+
+**A clown that's still being drawn can't hurt Pierre and can't be hurt.** It just sits there half-finished. This is the player's warning window. When the drawing finishes, the clown comes to life right away and shouts something in a speech bubble ("HONK!", "HAW HAW!", "NICE FACE PAINT!", "SAY SOMETHING!"). After the last clown, the hand leaves.
+
+**Optional:** a small countdown or shrinking ring over a clown that's being drawn.
 
 ### 5.4 Clowns
+Each clown has one simple job, so each feels different to fight.
 
-Core clowns (needed for the core game):
+**Core clowns** (needed for the core game):
+- **Unicyclist:** fragile but fast. Rides back and forth on its platform, turns around at walls and ledges (never falls off), and hurts Pierre if he touches it. Goes down in a couple of punches.
+- **Pie Tosser:** a little sturdier, and stays put. Every few seconds it lobs a pie in an arc toward Pierre. The pie splats on whatever it hits.
 
-| Clown | HP | Behavior | Damage |
-|---|---|---|---|
-| **Unicyclist** | 2 | Rides back and forth at 180 px/second on its platform. Turns around at walls and at platform edges (never falls off). | 1 on contact |
-| **Pie Tosser** | 3 | Stands still and faces Pierre. Every 2.5 seconds, throws a pie in an arc toward where Pierre is standing at that moment. The pie disappears when it hits anything. | 1 per pie |
-
-Stretch clowns:
-
-| Clown | HP | Behavior | Damage |
-|---|---|---|---|
-| **Seltzer Spritzer** | 3 | Walks toward Pierre at 90 px/second. When within 120 px, sprays a seltzer stream (0.5 s) in front of it, then waits 2 seconds. | 1, plus knockback of 150 px |
-| **Juggler** | 3 | Stands still, juggling 3 pins. When Pierre is within 250 px, throws one pin straight at him every 1.5 seconds. | 1 per pin |
-| **Balloon Twister** | 2 | Stands still. Every 4 seconds, twists a balloon dog (max 2 alive at once). Balloon dogs have 1 HP, chase Pierre at 120 px/second, and pop with "POP!" on contact with him. | 1 per balloon dog |
-| **Clown Car** | 6 | A tiny car that parks on arrival. Every 1.5 seconds, a mini clown pops out (1 HP, walks toward Pierre at 100 px/second). Stops releasing clowns when destroyed. Counts as a "crowded" panel trigger. | 1 on contact (mini clowns) |
+**Stretch clowns:**
+- **Seltzer Spritzer:** walks toward Pierre and sprays seltzer at close range. The spray mostly pushes Pierre back rather than doing much damage.
+- **Juggler:** stands still juggling bowling pins and throws one straight at Pierre whenever he gets close.
+- **Balloon Twister:** stands back and keeps twisting balloon dogs (a couple at a time) that chase Pierre and pop when they reach him.
+- **Clown Car:** a tiny car that parks and keeps releasing mini clowns until Pierre smashes it. Tougher than any other clown. A panel with a Clown Car counts as "crowded".
 
 ### 5.5 The left hand (secret helper)
-- The left hand draws one item at a time. Drawing takes **1.5 seconds** (same outline-then-fill style as the right hand, but in crayon colors). An item can't be picked up until it's finished.
-- Items appear on the ground or on a platform Pierre can reach, at least 150 px away from any clown.
-- Pierre picks up an item by touching it.
+The left hand draws one item at a time, in the same outline-then-color style but in crayon, and a little faster than the right hand. Items can't be picked up until the drawing is finished. It puts items somewhere Pierre can reach, away from clowns. Pierre picks an item up by touching it.
 
-The left hand appears in three situations:
+The left hand shows up in three situations:
+1. **Pierre is losing:** when he's low on health (around a third left), it quickly draws a **sandwich**. It shouldn't spam them: there's a cooldown, and it won't draw one if a sandwich is already on screen.
+2. **Before a crowded panel:** in panels with lots of clowns (panel 4 in the core version), it draws an item as soon as Pierre enters, before the first clown is finished.
+3. **At random:** in the other fighting panels, it occasionally (roughly 1 panel in 3) shows up at a random moment and draws a random item.
 
-1. **Pierre is losing:** when Pierre's HP drops to **3 or less**, the left hand draws a **sandwich** within 2 seconds. It won't do this again for 10 seconds, and won't do it if a sandwich is already on screen.
-2. **Before a crowded panel:** in any panel with 4 or more clowns (panel 4 in the core version), the left hand draws one random item as soon as Pierre enters, **before** the right hand finishes drawing the first clown.
-3. **At random:** in every other fighting panel, there's a 30% chance the left hand shows up at a random time between 3 and 10 seconds after Pierre enters and draws one random item.
-
-Random item odds (core): sandwich 50%, squeaky hammer 25%, throwing knives 25%. When stretch items are added, split the non-sandwich 50% evenly between all available items.
+Random items are **mostly sandwiches**, with the hammer and knives less common. When stretch items are added, they share the non-sandwich odds.
 
 ### 5.6 Items
+Pierre can hold **one melee item** at a time (hammer, balloon sword, or pogo stick). Picking up a new one replaces the old one. Throwing knives are separate and stack. The HUD shows what he's holding and how much is left.
 
-Holding rules: Pierre can hold **one melee item** at a time (hammer, balloon sword, or pogo stick). Picking up a new one replaces the old one. Throwing knives are separate and stack. The held item and its remaining uses are shown in the HUD.
+**Core items:**
+- **Sandwich:** restores a good chunk of health (about 4 hits' worth). Eaten right away, not held.
+- **Squeaky hammer:** replaces the punch. Slower, but hits much harder and reaches a bit further. Squeaks on every hit. Breaks after about 10 swings. (In the stretch goal, it can also hurt the right hand.)
+- **Throwing knives:** a handful per pickup (around 5). K throws one straight ahead. Stronger than a punch.
 
-Core items:
-
-| Item | Effect |
-|---|---|
-| **Sandwich** | Restores 4 HP immediately (never above 10). Not held. |
-| **Squeaky hammer** | Replaces the punch. 3 damage, 60 px reach, at most one swing every 0.6 seconds, "SQUEAK!" on hit. Breaks after 10 swings (hit or miss). |
-| **Throwing knives** | +5 knives (max 10 carried). K throws one straight ahead at 480 px/second. 2 damage. Disappears on hit or at the panel edge. |
-
-Stretch items:
-
-| Item | Effect |
-|---|---|
-| **Balloon sword** | Replaces the punch. 2 damage, 50 px reach, one swing every 0.2 seconds. Pops ("POP!") after 8 hits. |
-| **Pogo stick** | Lasts 15 seconds. Jumps go 1.6× higher (reaching platforms that are impossible otherwise). Landing on top of a clown deals 2 damage and bounces Pierre up. |
-| **Slinky** | 3 per pickup. Thrown with J (instead of the melee attack) while held; it "walks" along the ground toward the nearest clown, going down platform edges, and deals 2 damage on contact. |
-| **Invisible Dog** (animal helper) | A mime gag: only a stiff leash and collar are visible. Follows Pierre for 20 seconds, runs at the nearest clown within 200 px, and bites for 1 damage every 1 second. |
+**Stretch items:**
+- **Balloon sword:** replaces the punch. Very fast and weak, and pops after a few hits.
+- **Pogo stick:** temporary. Pierre bounces much higher (reaching spots he otherwise can't), and landing on a clown damages it and bounces him back up.
+- **Slinky:** a few per pickup. Thrown with J while held. It "walks" along the ground toward the nearest clown, going down ledges like a real slinky, and damages the clown when it arrives.
+- **Invisible Dog** (animal helper): a mime gag. Only a stiff leash and collar are visible. Follows Pierre for a while, runs at nearby clowns, and bites them.
 
 ### 5.7 Hurting the right hand (stretch)
-- While the right hand is drawing, a **squeaky hammer** hit on the hand cancels the drawing.
-- The hand visibly reacts: it jerks back, shakes for about 1 second with an "OW!" bubble and cartoon stars, then exits off the top of the screen.
-- The half-drawn clown is erased (wipes away).
-- The hand comes back after 3 seconds to draw the rest of the panel's clowns, **including the one that was cancelled**. Interrupting buys time; it doesn't skip clowns.
+Hitting the right hand with the **squeaky hammer** while it's drawing cancels the drawing. The hand jerks back and shakes it off for a second, with an "OW!" bubble and cartoon stars, then leaves. The half-drawn clown wipes away.
+
+The hand comes back shortly after and redraws everything left in the panel, **including the clown that was cancelled**. Interrupting buys time; it doesn't skip clowns.
 
 ### 5.8 Screens and HUD
-- **Title screen:** comic-book cover reading "MIME OVER MATTER", with the story from section 1 in 2 to 4 short caption boxes, and "Press Enter to start".
-- **HUD** (top of screen, outside or along the top of the panel): health bar with 10 segments, held melee item icon and uses left, knife count, "Panel N / 6".
-- **Game Over:** a big red "CANCELLED!" stamp across the panel, and "Press R to try again". Restarting resets Pierre to 10 HP, no items, panel 1.
+- **Title screen:** a comic-book cover reading "MIME OVER MATTER", with the story from section 1 in 2 to 4 short caption boxes, and "Press Enter to start".
+- **HUD:** health bar, held item and uses left, knife count, "Panel N / 6".
+- **Game Over:** a big red "CANCELLED!" stamp across the panel, and "Press R to try again". Restarting puts Pierre back at panel 1 with full health and no items.
 - **Pause:** P freezes everything and shows "PAUSED".
 
 ## 6. Acceptance criteria
@@ -158,55 +132,55 @@ Tags: **[P1]** must have, **[P2]** next most important, **[P3]** stretch. See se
 
 ### Getting started
 1. **[P1]** Following the README, the game runs on a machine other than the author's.
-2. **[P2]** A title screen shows the game name and the story in 2 to 4 caption boxes. Enter starts the game.
+2. **[P2]** A title screen shows the game name and the story in a few caption boxes. Enter starts the game.
 
 ### Pierre
 3. **[P1]** Pierre walks left/right with the arrow keys (and A/D) and jumps with Space (and W/Up).
 4. **[P1]** Pierre lands on platforms and the ground, and can't walk through walls or off the left edge of a panel.
-5. **[P1]** Pressing J punches. A punch within 40 px of a clown deals 1 damage and shows "POW!".
-6. **[P1]** Pierre has 10 HP shown as a health bar. Getting hit removes HP, knocks Pierre back, and makes him flash and be invincible for 1 second.
-7. **[P1]** At 0 HP, the game shows a Game Over screen. R restarts at panel 1 with full health and no items.
-8. **[P2]** When hit, Pierre shows an empty (or "…") speech bubble for 1 second.
+5. **[P1]** Pressing J punches. A punch that connects damages the clown and shows "POW!".
+6. **[P1]** Pierre has a visible health bar. A hit removes some health, knocks him back, and gives a brief flashing invincibility so he can't be hit twice in a row.
+7. **[P1]** When his health runs out, a Game Over screen appears. R restarts at panel 1 with full health and no items.
+8. **[P2]** When hit, Pierre shows an empty (or "…") speech bubble.
 
 ### The right hand
 9. **[P1]** When Pierre enters a panel, a hand holding a pen appears and draws each of the panel's clowns one at a time.
-10. **[P1]** Each clown takes 2.0 seconds to draw: an outline that appears gradually, then color.
+10. **[P1]** Each clown takes about 2 seconds to draw: outline first, then color.
 11. **[P1]** A clown that's still being drawn doesn't move, doesn't hurt Pierre, and can't be damaged.
 12. **[P1]** When the drawing finishes, the clown starts moving/attacking immediately.
-13. **[P2]** Each clown shows a speech bubble ("HONK!", etc.) for 1.5 seconds when it becomes active.
+13. **[P2]** Each clown shouts something in a speech bubble when it comes to life.
 14. **[P3]** A countdown or shrinking ring appears over a clown being drawn.
 
 ### Clowns
-15. **[P1]** Unicyclist: 2 HP, rides back and forth, turns at walls and platform edges, hurts Pierre for 1 on contact.
-16. **[P1]** Pie Tosser: 3 HP, throws an arcing pie at Pierre every 2.5 seconds, 1 damage per pie.
-17. **[P1]** A clown disappears when its HP reaches 0.
+15. **[P1]** Unicyclist: rides back and forth, turns at walls and ledges without falling off, and hurts Pierre on contact. Goes down in a couple of punches.
+16. **[P1]** Pie Tosser: stays put and lobs a pie in an arc at Pierre every few seconds. Takes more hits than the Unicyclist.
+17. **[P1]** A defeated clown disappears.
 18. **[P3]** Seltzer Spritzer, Juggler, Balloon Twister, and Clown Car each work as described in section 5.4. (Report each one separately.)
 
 ### Panels
 19. **[P1]** The right edge of each panel is blocked until every clown in it is defeated, then unblocks and shows an arrow.
-20. **[P1]** Walking off the right edge loads the next panel, and Pierre appears at its left edge.
-21. **[P1]** There are 5 fighting panels with the contents in the table in section 5.2, and the HUD shows "Panel N / 6".
-22. **[P1]** Reaching panel 6 shows THE END, with "Press R to play again".
+20. **[P1]** Walking off the right edge loads the next panel, with Pierre on its left side.
+21. **[P1]** There are 5 fighting panels matching the table in section 5.2, and the HUD shows "Panel N / 6".
+22. **[P1]** Reaching panel 6 shows THE END, and R starts a new game.
 23. **[P2]** In the THE END panel, Pierre takes a bow and "THE END" is drawn across the panel.
 
 ### The left hand and items
-24. **[P1]** When Pierre's HP drops to 3 or less, a second hand (holding a crayon) draws a sandwich within 2 seconds. It doesn't do this again for 10 seconds, or while a sandwich is on screen.
-25. **[P1]** Touching a sandwich restores 4 HP (max 10).
-26. **[P1]** Items can't be picked up until the left hand finishes drawing them (1.5 seconds).
-27. **[P2]** Squeaky hammer: replaces the punch, 3 damage, 60 px reach, breaks after 10 swings. The HUD shows swings left.
-28. **[P2]** Throwing knives: pickup gives 5 (max 10). K throws one straight ahead for 2 damage. The HUD shows the count.
-29. **[P2]** In a panel with 4 or more clowns, the left hand draws a random item before the first clown is finished.
-30. **[P2]** In other fighting panels, the left hand shows up 30% of the time and draws a random item (sandwich 50%, hammer 25%, knives 25%).
+24. **[P1]** When Pierre is low on health, a second hand (holding a crayon) quickly draws a sandwich. It doesn't draw another one right away, or while one is already on screen.
+25. **[P1]** Touching a sandwich restores a good chunk of health (never above full).
+26. **[P1]** Items can't be picked up until the left hand finishes drawing them.
+27. **[P2]** Squeaky hammer: replaces the punch, hits harder, and breaks after about 10 swings. The HUD shows swings left.
+28. **[P2]** Throwing knives: a pickup gives a handful. K throws one straight ahead. The HUD shows the count.
+29. **[P2]** In a crowded panel, the left hand draws an item before the first clown is finished.
+30. **[P2]** In other fighting panels, the left hand occasionally shows up and draws a random item, usually a sandwich.
 31. **[P3]** Balloon sword, pogo stick, and slinky each work as described in section 5.6. (Report each one separately.)
 32. **[P3]** The Invisible Dog works as described in section 5.6.
 
 ### Hurting the hand
-33. **[P3]** Hitting the right hand with the hammer while it's drawing cancels the drawing. The hand shows pain ("OW!", shaking, stars) and leaves, the half-drawn clown is erased, and the hand returns after 3 seconds to finish the panel.
+33. **[P3]** Hitting the right hand with the hammer while it's drawing cancels the drawing. The hand shows pain ("OW!", shaking, stars) and leaves, the half-drawn clown wipes away, and the hand comes back shortly after to finish the panel.
 
 ### Polish
-34. **[P2]** Hits show comic burst text ("POW!", "BONK!", "SQUEAK!", "POP!") for 0.3 seconds.
+34. **[P2]** Hits show comic burst text ("POW!", "BONK!", "SQUEAK!", "POP!").
 35. **[P2]** P pauses and unpauses the game.
-36. **[P3]** Sound effects: honk on clown spawn, squeak on hammer hits, pop on balloon items, a pen-scratch sound while drawing.
+36. **[P3]** Sound effects: honk when a clown comes to life, squeak on hammer hits, pop on balloon items, a pen-scratch sound while drawing.
 
 ## 7. Priorities
 
@@ -232,7 +206,7 @@ Tags: **[P1]** must have, **[P2]** next most important, **[P3]** stretch. See se
 
 ## 8. Notes for whoever builds this
 - **Planned tech:** plain JavaScript and an HTML canvas, no build step and no libraries, so the game runs by opening `index.html` in a browser.
-- **All numbers in this spec are tuning values, not sacred.** If a number makes the game feel bad, change it and say so in the README.
+- **This spec describes how things should feel, not exact values.** Pick numbers (speeds, damage, timings) that feel right, and keep the main tuning values together in one place so they're easy to adjust.
 - Panel contents (which clowns, where, in what order, whether the panel is "crowded") should live in one data list, separate from the game logic, so panels can be added or rebalanced without touching code.
-- One shared "being drawn" system should handle both hands: something appears at a position over N seconds and becomes active when finished. Clowns use it with 2.0 seconds and items with 1.5 seconds.
+- One shared "being drawn" system should handle both hands: something appears at a position over a few seconds and becomes active when finished. Clowns and items both use it.
 - **Out of scope:** multiple pages, saving progress, mobile/touch controls, two-player, scrolling levels.
