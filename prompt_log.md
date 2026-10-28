@@ -121,3 +121,23 @@ stop for me to play it before P2 work
 **What came back:** the [P1] game, built in five commits, then this log and the README. The AI tested each step with a throwaway script that runs the game in Node with a fake canvas, plus screenshots in Chrome. It found and fixed one problem along the way: the left hand was drawing the sandwich right on top of Pierre, which hid the drawing, so it now prefers a spot a short walk away. All [P2] and [P3] work is left for next time; the README lists what's met.
 
 (One unrelated question about Claude Code itself is left out.)
+
+## Phase 1, part 3: expanding the game (Wed 10/28/2026)
+
+### Prompt 12
+I played through and attached a screenshot of the THE END panel.
+```
+ok i played through, for a first run it's fine. 6 panels is way to short for a game, we should extend to like 12-24 panels. the game is really repetitive so far becausa the level design is boring and only two kinds of enemies and only a punch. we need to improve the fighting, the enemies, and the visuals. I was hoping for visuals that look something like Comix Zone eventually, but this looks really cartoony rather than a comic
+```
+**What came back:** a plan in five parts:
+1. An art-style test panel first, so the look is settled before more clowns are drawn.
+2. Better fighting.
+3. The spec's extra clowns and smarter versions of the existing two.
+4. Longer and more varied levels.
+5. Spec changes drafted for me to approve.
+
+It then asked me four questions. My answers:
+- **Where the work goes:** keep going on main.
+- **Length:** 18 panels, as 3 pages of 6.
+- **Fighting:** combos and hit feel, the spec's items, and mime powers. I didn't pick the boss fight against the right hand.
+- **Art:** still drawn in code, but in a comic ink style, not with sprite images.
