@@ -6,11 +6,6 @@ function surfacesOf(panel) {
   return [{ x: 0, y: CONFIG.groundY, w: CONFIG.panel.w, ground: true }, ...panel.platforms];
 }
 
-// The surface directly under a point, if any (used to place clowns).
-function surfaceAt(surfaces, x, y) {
-  return surfaces.find(s => Math.abs(s.y - y) < 1 && x >= s.x && x <= s.x + s.w) || null;
-}
-
 // Moves a falling body (x, y = bottom center, w = width) onto the highest
 // surface it crossed this frame. prevY is its bottom before the move.
 // Returns the surface it landed on, or null.
