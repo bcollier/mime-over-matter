@@ -54,7 +54,7 @@ Pierre moves like a classic arcade platformer hero: quick and responsive, with a
 He can take about ten hits before going down. Getting hit is slapstick: a little knockback, a moment of flashing invincibility so he can't be hit twice in a row, and an empty speech bubble (he's a mime; he can't complain). When his health runs out, it's Game Over.
 
 ### 5.2 Panels and progression
-The game is one comic **page** of **6 panels**: 5 fighting panels plus a final **THE END** panel. Each panel is one fixed screen, with no scrolling. Pierre enters on the left, and the right edge is **blocked by a thick ink line** until every clown in the panel is defeated. Then the line disappears, an arrow appears, and walking off the right edge takes Pierre to the next panel.
+*(Section 9 expands this to 3 pages and 18 panels. This table is still page 1.)* The game is one comic **page** of **6 panels**: 5 fighting panels plus a final **THE END** panel. Each panel is one fixed screen, with no scrolling. Pierre enters on the left, and the right edge is **blocked by a thick ink line** until every clown in the panel is defeated. Then the line disappears, an arrow appears, and walking off the right edge takes Pierre to the next panel.
 
 Reaching THE END wins the game: Pierre takes a silent bow, "THE END" is drawn across the panel, and the player can press R to play again.
 
@@ -209,4 +209,62 @@ Tags: **[P1]** must have, **[P2]** next most important, **[P3]** stretch. See se
 - **This spec describes how things should feel, not exact values.** Pick numbers (speeds, damage, timings) that feel right, and keep the main tuning values together in one place so they're easy to adjust.
 - Panel contents (which clowns, where, in what order, whether the panel is "crowded") should live in one data list, separate from the game logic, so panels can be added or rebalanced without touching code.
 - One shared "being drawn" system should handle both hands: something appears at a position over a few seconds and becomes active when finished. Clowns and items both use it.
-- **Out of scope:** multiple pages, saving progress, mobile/touch controls, two-player, scrolling levels.
+- **Out of scope:** saving progress, mobile/touch controls, two-player, scrolling levels. (Multiple pages were out of scope in the first version; section 9 adds them.)
+
+## 9. Expansion (approved Wed 10/28/2026, after the first playtest)
+
+The first playable version (sections 1 to 8) was too short and too repetitive: 6 flat panels, two clowns and a single punch. This section extends the game. Where it conflicts with an earlier section, this section wins.
+
+### 9.1 Length: 3 pages, 18 panels
+- The game is **3 pages of 6 panels** (18 panels). Page 1 is the table in 5.2. The last panel of page 3 is THE END.
+- Each page has its own setting: **page 1, the KlownKon convention floor; page 2, backstage** (props, rigging, dressing rooms); **page 3, the big top** (ring, bleachers, trapeze platforms).
+- Between pages, the whole page is shown laid out as a comic page, with the panels Pierre has cleared, before the next page starts.
+- The HUD shows the page and panel, e.g. "Page 2 · Panel 3 / 6".
+
+### 9.2 Level design
+- Levels need dimensionality. Every fighting panel has **at least two heights** to stand on (platforms, stacked crates, bleachers), and some clowns stand up high.
+- From page 2 on, panels also have **obstacles** (solid crates or walls Pierre has to jump over or climb) and **hazards**, such as a banana peel that slips Pierre, a trapdoor, or a pie conveyor belt.
+- No two panels in a row share a layout. Each new clown type appears alone in a panel before it is mixed with others.
+- Some panels are mainly about getting across (a climb or a hazard run) rather than fighting.
+
+### 9.3 Fighting
+- **Combo:** pressing J three times quickly does jab, jab, then a finisher that knocks the clown back.
+- **Jump kick:** J in the air kicks forward and down.
+- **Hit feel:** a short freeze on every hit, a screen shake on finishers, and clowns stagger when hit.
+- All items in 5.6 (hammer, knives, balloon sword, pogo stick, slinky) are part of the main game, not stretch.
+
+### 9.4 Mime powers
+Pierre's mime routines work for real inside the comic. Each power has its own cooldown, shown in the HUD.
+- **Invisible Wall (L):** Pierre mimes a wall in front of him. For a moment it blocks pies and thrown things and stops clowns walking into it.
+- **Invisible Rope (U):** Pierre mimes pulling a rope, dragging the nearest clown in front of him toward him.
+- **Invisible Box (I):** Pierre mimes a box around the nearest clown in reach, trapping it in place (it can't move or attack) for a few seconds.
+
+### 9.5 Look
+The comic ink style is now the target, replacing "simple shapes are fine" in section 3: brush outlines that are thicker on the shadow side, cel shadows with cross-hatching, patterned costumes, posable characters, detailed backgrounds faded behind the characters, aged paper gutters, yellow caption boxes and big extruded sound-effect lettering. The art is still drawn in code, so the hands can keep drawing things stroke by stroke.
+
+### 9.6 Priority changes
+- The extra clowns (criterion 18) and the extra items (criterion 31) move from **[P3] to [P2]**.
+- Criteria 21 and 22 now mean 18 panels and "THE END" on panel 18.
+
+### 9.7 New acceptance criteria
+37. **[P2]** The game has 3 pages of 6 panels. The HUD shows the page and the panel. Panel 18 is THE END.
+38. **[P2]** Between pages, the whole page is shown with the cleared panels.
+39. **[P2]** Each page has its own background setting (convention floor, backstage, big top).
+40. **[P2]** Every fighting panel has at least two heights to stand on, and no two panels in a row share a layout.
+41. **[P2]** From page 2 on, panels include solid obstacles and at least two kinds of hazard (banana peel, trapdoor, pie conveyor belt).
+42. **[P2]** Three quick J presses do jab, jab, finisher; the finisher knocks the clown back.
+43. **[P2]** J in the air does a jump kick.
+44. **[P2]** Hits freeze the action briefly, finishers shake the screen, and hit clowns stagger.
+45. **[P2]** Invisible Wall (L) blocks pies and stops clowns for a moment, then goes on cooldown.
+46. **[P2]** Invisible Rope (U) pulls the nearest clown in front of Pierre toward him, then goes on cooldown.
+47. **[P2]** Invisible Box (I) traps the nearest clown in reach for a few seconds, then goes on cooldown.
+48. **[P3]** Each new clown type appears alone in a panel before it is mixed with others.
+
+### 9.8 Build order for the expansion
+1. Level dimensionality and obstacles on the existing panels (40, 41), since flat panels were the biggest complaint.
+2. Combo, jump kick and hit feel (42 to 44).
+3. Hammer and knives (27, 28), then the left hand's other triggers (29, 30).
+4. The extra clowns (18), introduced one at a time (48).
+5. Pages 2 and 3 with their settings (37 to 39).
+6. Mime powers (45 to 47), then the extra items (31).
+7. The remaining [P2] polish from section 7, then [P3].
