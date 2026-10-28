@@ -122,12 +122,34 @@ get('Game.pierre.health = 2');
 run(2);
 check('no second sandwich during the cooldown', get('Game.items.length') === 0 && !get('Game.leftHand.busy'));
 
+// --- The squeaky hammer, drawn first in the crowded panel ---
+get('Game.loadPanel(3); Game.pierre.hurt = () => false');
+run(1.0);
+check('crowded panel: the left hand draws the hammer', get('Game.items.length === 1 && Game.items[0].kind === "hammer"'));
+get('Game.pierre.x = Game.items[0].x; Game.pierre.y = Game.items[0].y; Game.pierre.vy = 0');
+run(1 / 60);
+check('a hammer being drawn cannot be picked up', get('Game.pierre.held') === null);
+run(1.2);
+check('the hammer is finished before the first clown (criterion 29)',
+  get('Game.items.length === 0 || Game.items[0].active') && get('Game.clowns.every(c => !c.active)'));
+get('Game.items[0] && (Game.pierre.x = Game.items[0].x, Game.pierre.y = Game.items[0].y)');
+run(1 / 60);
+check('touching the hammer picks it up with 10 swings', get('Game.pierre.hasHammer && Game.pierre.held.swings === 10'));
+run(3);
+get('const c = Game.clowns.find(c => c.active && c.type === "pieTosser"); Game.pierre.x = c.x - 70; Game.pierre.y = c.y; Game.pierre.facing = 1; Game.pierre.punchCooldown = 0; Game.effects = []; Game.pierre.punch(Game)');
+check('a hammer hit does 3 damage and shows SQUEAK!',
+  get('Game.clowns.some(c => c.type === "pieTosser" && c.health === 1)') && get('Game.effects.some(e => e.text === "SQUEAK!")'));
+check('each swing uses one', get('Game.pierre.held.swings') === 9);
+for (let i = 0; i < 9; i++) get('Game.pierre.punch(Game)');
+check('the hammer breaks after 10 swings', get('Game.pierre.held') === null);
+
 // --- Game Over and restart ---
 get('delete Game.pierre.hurt; Game.pierre.health = 0');
 run(0.1);
 check('Game Over at 0 health', get('Game.state') === 'gameover');
 key('keydown', 'r'); run(0.1); key('keyup', 'r');
-check('R restarts at panel 1 with full health', get('Game.state') === 'play' && get('Game.panelIndex') === 0 && get('Game.pierre.health') === 10);
+check('R restarts at panel 1 with full health and no items',
+  get('Game.state') === 'play' && get('Game.panelIndex') === 0 && get('Game.pierre.health') === 10 && get('Game.pierre.held') === null);
 
 // --- THE END ---
 get('Game.loadPanel(4); Game.pierre.hurt = () => false');

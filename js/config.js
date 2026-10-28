@@ -41,6 +41,14 @@ const CONFIG = {
   // The cartoonist's hands (spec 5.3 and 5.5). drawTime is per thing drawn.
   rightHand: { drawTime: 2.0, speed: 1300, enterDelay: 0.4, lineWidth: 4 },
   leftHand: { drawTime: 1.2, speed: 1000, enterDelay: 0, lineWidth: 6, wobble: 5 },
+  hammer: {
+    damage: 3,             // a punch does 1
+    range: 66,             // reaches further than a punch
+    cooldown: 0.45,        // slower than a punch
+    show: 0.2,
+    push: 30,              // knocks clowns back further
+    swings: 10,            // breaks after this many swings, hit or miss
+  },
   drawing: {
     outlineShare: 0.6,     // the outline takes 60% of a drawing, color the rest
   },

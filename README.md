@@ -5,7 +5,7 @@ A comic-book brawler-platformer played panel by panel. Pierre, a silent mime, is
 ## Handoff: where things stand (Wed 10/28/2026)
 
 - **Built:** every [P1] criterion. The first version (spec sections 1 to 8) is a complete, winnable 6-panel game: walk, jump, punch, two clown types, the right hand drawing clowns, the left hand's sandwich rescue, Game Over and THE END.
-- **Since the first playtest:** a comic ink art style (spec 9.5), and multi-level risers in every panel (criterion 40).
+- **Since the first playtest:** a comic ink art style (spec 9.5), multi-level risers in every panel (criterion 40), and the squeaky hammer, which the left hand draws at the start of the crowded panel 4 (criteria 27 and 29).
 - **Approved but not built:** [SPEC.md section 9](SPEC.md#9-expansion-approved-wed-10282026-after-the-first-playtest) expands the game to 18 panels on 3 pages, with obstacles and hazards, combos, a jump kick, hit feel, mime powers, and the extra clowns and items as [P2]. Its build order is in spec 9.8, and the [Next steps](#next-steps) below map each step to the code.
 - **The playtest verdict to fix first:** "the levels are really boring." Panels need obstacles, hazards and more variety (criterion 41) before anything else.
 - **Before changing anything,** run `node tests/smoke.js` and play through once.
@@ -33,6 +33,7 @@ It loads the real game scripts with a fake canvas and checks the core rules:
 - clowns being harmless while drawn;
 - punching, the gate and moving between panels;
 - the sandwich rescue and its cooldown;
+- the hammer: drawn first in the crowded panel, 3 damage, breaks after 10 swings;
 - Game Over, restart and THE END.
 
 It doesn't check how anything looks or feels, so play the game too.
@@ -43,14 +44,14 @@ It doesn't check how anything looks or feels, so play the game too.
 |---|---|
 | Left / Right arrows, or A / D | Walk |
 | Space, W or Up arrow | Jump (let go early for a short hop) |
-| J | Punch |
+| J | Punch, or swing the squeaky hammer while holding it |
 | R (or Enter) | Restart from panel 1 after Game Over or at THE END |
 
-Not built yet: K (throw knife) and P (pause). There is no title screen yet, so the game starts as soon as the page loads.
+Not built yet: K (throw knife), P (pause), and the mime powers L, U and I (spec 9.4). There is no title screen yet, so the game starts as soon as the page loads.
 
 ## Acceptance criteria
 
-Numbers match sections 6 and 9.7 of [SPEC.md](SPEC.md). Every [P1] criterion is met. Of the rest, only the art style and multi-level panels have been worked on; criterion 5's "POW!" burst is the only polish in.
+Numbers match sections 6 and 9.7 of [SPEC.md](SPEC.md). Every [P1] criterion is met. Of the rest, the art style, multi-level panels and the hammer are in.
 
 | # | Pri | Status | Notes |
 |---|---|---|---|
@@ -80,14 +81,14 @@ Numbers match sections 6 and 9.7 of [SPEC.md](SPEC.md). Every [P1] criterion is 
 | 24 | P1 | Met | At 3 health or less, a second hand holding a crayon wobbles in and draws a sandwich in 1.2 seconds. It won't draw another while one is on screen, or within 10 seconds of the last. |
 | 25 | P1 | Met | Touching a finished sandwich restores 4 health, never above 10. |
 | 26 | P1 | Met | A sandwich being drawn can't be eaten. |
-| 27 | P2 | Not met | No hammer. |
+| 27 | P2 | Met | Touching the hammer replaces the punch: J swings it for 3 damage (a punch does 1), with more reach and knockback, slower, and a "SQUEAK!" burst. It breaks after 10 swings, hit or miss ("CRACK!"). The HUD shows the swings left. Picking up another hammer resets the count. |
 | 28 | P2 | Not met | No knives. |
-| 29 | P2 | Not met | Panel 4 is marked `crowded: true` in `js/panels.js`, but nothing reads that flag yet. |
+| 29 | P2 | Met | In a `crowded: true` panel (panel 4), the left hand draws the hammer as soon as Pierre enters. It's finished about 0.6 seconds before the first clown. The item is always the hammer for now. |
 | 30 | P2 | Not met | No random items. |
 | 31 | P2 (was P3) | Not met | No balloon sword, pogo stick or slinky. |
 | 32 | P3 | Not met | No Invisible Dog. |
 | 33 | P3 | Not met | The hand can't be hurt. |
-| 34 | P2 | Partly met | Only "POW!" on punches. No "BONK!" when Pierre is hit, and no "SQUEAK!" or "POP!" (those need items). |
+| 34 | P2 | Partly met | "POW!" on punches and "SQUEAK!" on hammer hits. No "BONK!" when Pierre is hit, and no "POP!" (that needs balloon items). |
 | 35 | P2 | Not met | No pause. |
 | 36 | P3 | Not met | No sound. |
 | 37 | P2 | Not met | Still one page of 6 panels. |
@@ -114,9 +115,9 @@ Numbers match sections 6 and 9.7 of [SPEC.md](SPEC.md). Every [P1] criterion is 
 | `js/render.js` | The comic look: paper gutters, the brush panel border, the KlownKon convention-hall background (drawn once per panel and cached), stage-riser platforms, caption boxes, shadows, "POW!" bursts, ink-line gate, exit arrow, "CANCELLED!", "THE END" and the HUD. |
 | `js/drawing.js` | The ink style and the shared "being drawn" system both hands use. Things are lists of shapes ("parts"); `limb` makes tapered arms and legs. `drawSketch` inks them with brush outlines, cel shadows, hatching, stripes and dots, finished or partly drawn. `penPoint` says where the pen tip is, and `DrawJob` runs one drawing and makes the thing `active` when it's done. |
 | `js/physics.js` | Surfaces (ground plus platforms), landing on them, and box overlap tests. |
-| `js/pierre.js` | `Pierre`: input, movement, jumping, punching, getting hurt, healing, and his parts, posed from joint positions for walking, punching, jumping and getting hit. |
+| `js/pierre.js` | `Pierre`: input, movement, jumping, punching or swinging the held item (`held`), getting hurt, healing, and his parts, posed from joint positions for walking, punching, jumping and getting hit. |
 | `js/clowns.js` | `Clown` base class, `Unicyclist`, `PieTosser`, `Pie`, and `makeClown(spec)`, which turns a panel entry into a clown. |
-| `js/items.js` | `Sandwich`. |
+| `js/items.js` | `Item` (the shared base: drawn by the left hand, picked up by touch once finished), `Sandwich`, `Hammer`, and `hammerParts`, which both the hammer on the floor and the one in Pierre's hand use. A new item subclasses `Item` and defines `pickUp(pierre)` and `parts()`. |
 | `js/hands.js` | `Hand`, one class for both hands: queue things, fly in, draw each with a `DrawJob`, leave. `handParts` is the hand holding a pen or crayon, as inked parts. |
 | `js/main.js` | Keyboard input (`Input`, `KEYS`), the `Game` object (states, loading panels, the gate, the sandwich rescue and where to put it, update and render order), and the frame loop. |
 | `tests/smoke.js` | The Node smoke test (see [Tests](#tests)). |
@@ -146,10 +147,10 @@ In the order of spec 9.8, with where each one goes in the code:
    - Jump kick: when `!this.onGround`.
    - Hit freeze: a `Game.freeze` timer that skips `update` for a few frames.
    - Screen shake: a random offset applied in `Game.render` before drawing the panel.
-3. **Hammer and knives (27, 28), then the left hand's other triggers (29, 30).**
-   - Add `Hammer` and `Knives` classes to `js/items.js`, shaped like `Sandwich`. Give `Pierre` a held melee item with swings left and a knife count, show both in `drawHUD`, and add K to `KEYS`.
-   - Crowded panels: in `Game.loadPanel`, if `panel.crowded`, call `this.leftHand.draw(...)` with an item at `spotForItem()`. The left hand draws faster than the right, so the item finishes before the first clown.
-   - Random items: roll about 1 in 3 per fighting panel and schedule a draw at a random time. Mostly sandwiches.
+3. **Knives (28), then random items (30).** The hammer is done; copy its pattern.
+   - Knives: a `Knives` subclass of `Item` whose `pickUp` adds to a `pierre.knives` count. Add K to `KEYS`, a `Knife` projectile shaped like `Pie` in `js/clowns.js`, and the count to `drawHUD`.
+   - Random items: roll about 1 in 3 per fighting panel in `Game.loadPanel` and schedule a left-hand draw at a random time. Mostly sandwiches, sometimes a hammer or knives. The crowded-panel draw in `loadPanel` could then pick a random non-sandwich item too.
+   - Spec 5.7 (hurting the right hand with the hammer) now has the hammer it needs.
 4. **Extra clowns (18), one new type per panel at first (48).** Subclass `Clown` in `js/clowns.js` and add the type to `makeClown`. Each clown needs `parts()` (built with `limb` and the patterns in `js/drawing.js`) and `act(dt, game)`.
 5. **Pages 2 and 3 (37 to 39).**
    - Turn `PANELS` into a list of pages and show "Page P · Panel N" in `drawHUD`.

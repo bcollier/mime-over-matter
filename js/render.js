@@ -414,7 +414,12 @@ function drawHUD(ctx, game) {
     ctx.lineWidth = 3;
     ctx.strokeRect(x, 24, 22, 26);
   }
-  outlinedText(ctx, 'MIME OVER MATTER', CONFIG.canvas.width / 2 + 60, 36, 30, '#e53935', { stroke: 6 });
+  if (p.hasHammer) {
+    box(450, 14, 250, 44);
+    outlinedText(ctx, `HAMMER: ${p.held.swings} SWINGS`, 575, 37, 22, '#fff', { stroke: 5 });
+  } else {
+    outlinedText(ctx, 'MIME OVER MATTER', CONFIG.canvas.width / 2 + 60, 36, 30, '#e53935', { stroke: 6 });
+  }
   box(CONFIG.canvas.width - 196, 14, 170, 44);
   outlinedText(ctx, `PANEL ${game.panelIndex + 1} / ${PANELS.length}`, CONFIG.canvas.width - 111, 37, 24, '#fff', { stroke: 5 });
 }

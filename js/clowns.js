@@ -24,13 +24,13 @@ class Clown {
 
   get box() { return boxOf(this); }
 
-  hurt(damage, fromX, game) {
+  hurt(damage, fromX, game, push = CONFIG.clowns.hitPush) {
     if (!this.active || this.dead) return;
     const c = CONFIG.clowns;
     this.health -= damage;
     this.hitFlash = c.hitFlash;
     this.stun = c.hitStun;
-    this.x += (this.x < fromX ? -1 : 1) * c.hitPush;
+    this.x += (this.x < fromX ? -1 : 1) * push;
     this.x = Math.max(this.surface.x + this.w / 2, Math.min(this.surface.x + this.surface.w - this.w / 2, this.x));
     if (this.health <= 0) {
       this.dead = true;

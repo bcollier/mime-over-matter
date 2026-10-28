@@ -62,6 +62,13 @@ const Game = {
     for (const spec of this.panel.clowns) {
       this.rightHand.draw(makeClown(spec, this.surfaces), clown => this.clowns.push(clown));
     }
+    // A crowded panel: the left hand draws the hammer at once. It draws
+    // faster and starts sooner, so the hammer is ready before the first
+    // clown (spec 5.5).
+    if (this.panel.crowded) {
+      const spot = this.spotForItem();
+      this.leftHand.draw(new Hammer(spot.x, spot.y), item => this.items.push(item));
+    }
   },
 
   // The left hand's rescue (spec 5.5): when Pierre is low on health, it

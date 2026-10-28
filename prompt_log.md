@@ -159,3 +159,11 @@ overall look is much better, but there is not much dimensionality to the level l
 - **Levels:** with only 20 minutes left, the AI gave panels 1 to 5 multi-level riser layouts (data only) instead of rushing obstacles. Obstacles and hazards are listed as the first next step.
 - **Tests:** it added `tests/smoke.js`, which checks the core rules and that every riser can be reached by jumping.
 - **Cleanup and docs:** it removed one unused function and rewrote the README for handoff.
+
+### Prompt 14
+```
+ok looks good still more time, can you tyr to add a weapon or something relatively small? do a small loop and check back with me
+```
+**What came back:** the squeaky hammer (criterion 27). The left hand draws it as soon as Pierre enters the crowded panel 4, so it's ready before the first clown (criterion 29). While Pierre holds it, J swings it for 3 damage with more reach and knockback, and a "SQUEAK!" burst. It breaks after 10 swings ("CRACK!"), and the HUD shows the swings left.
+
+To keep the code tidy, the AI made a shared `Item` base class for the sandwich and the hammer, and added hammer checks to `tests/smoke.js`. The first screenshot showed the hammer covering Pierre's face while he carried it, so it's now carried angled forward.

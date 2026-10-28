@@ -4,6 +4,7 @@ class Pierre {
     this.w = CONFIG.pierre.w;
     this.h = CONFIG.pierre.h;
     this.health = CONFIG.pierre.maxHealth;
+    this.held = null;   // a melee item, e.g. { kind: 'hammer', swings: 10 }
     this.placeAtStart();
   }
 
@@ -61,21 +62,35 @@ class Pierre {
     if (this.onGround && this.vx !== 0) this.walkPhase += dt * 14;
   }
 
+  get hasHammer() { return this.held && this.held.kind === 'hammer'; }
+
+  // J: a punch, or a swing of the squeaky hammer if he's holding it.
   punch(game) {
-    const c = CONFIG.pierre;
-    this.punchCooldown = c.punchCooldown;
-    this.punchTimer = c.punchShow;
+    const c = CONFIG.pierre, hammer = this.hasHammer ? CONFIG.hammer : null;
+    const range = hammer ? hammer.range : c.punchRange;
+    this.punchCooldown = hammer ? hammer.cooldown : c.punchCooldown;
+    this.punchTimer = hammer ? hammer.show : c.punchShow;
     const reach = {
-      left: this.facing > 0 ? this.x : this.x - this.w / 2 - c.punchRange,
-      right: this.facing > 0 ? this.x + this.w / 2 + c.punchRange : this.x,
+      left: this.facing > 0 ? this.x : this.x - this.w / 2 - range,
+      right: this.facing > 0 ? this.x + this.w / 2 + range : this.x,
       top: this.y - this.h + 8,
       bottom: this.y - 16,
     };
     for (const clown of game.clowns) {
       if (clown.active && boxesOverlap(reach, clown.box)) {
-        clown.hurt(c.punchDamage, this.x, game);
-        game.burst('POW!', clown.x - this.facing * clown.w / 4, clown.y - clown.h * 0.6);
+        const y = clown.y - clown.h * 0.6;
+        if (hammer) {
+          clown.hurt(hammer.damage, this.x, game, hammer.push);
+          game.burst('SQUEAK!', clown.x - this.facing * clown.w / 4, y, '#1e88e5');
+        } else {
+          clown.hurt(c.punchDamage, this.x, game);
+          game.burst('POW!', clown.x - this.facing * clown.w / 4, y);
+        }
       }
+    }
+    if (hammer && --this.held.swings <= 0) {
+      this.held = null;
+      game.burst('CRACK!', this.x + this.facing * 50, this.y - 90, '#8d6e63');
     }
   }
 
@@ -169,6 +184,13 @@ class Pierre {
       { shape: 'circle', x: 1, y: -120, r: 18, ry: 6, fill: INK },
       { shape: 'circle', x: 1, y: -127, r: 3, fill: INK },
       ...arm(frontArm, this.punchTimer > 0 ? 9 : 7),
+      // The hammer: carried angled forward (clear of his face), swung out
+      // level when attacking.
+      ...(this.hasHammer
+        ? (this.punchTimer > 0
+          ? hammerParts(frontArm[2], [frontArm[2][0] + 40, frontArm[2][1]], 'flat')
+          : hammerParts(frontArm[2], [frontArm[2][0] + 30, frontArm[2][1] - 30], 'up'))
+        : []),
     ]);
   }
 
