@@ -19,6 +19,7 @@ class Clown {
     this.dead = false;
     this.hitFlash = 0;
     this.stun = 0;
+    this.anim = 0;
   }
 
   get box() { return boxOf(this); }
@@ -38,6 +39,7 @@ class Clown {
   }
 
   update(dt, game) {
+    this.anim += dt;
     this.hitFlash -= dt;
     this.stun -= dt;
     if (this.stun <= 0) this.act(dt, game);
@@ -67,32 +69,63 @@ class Unicyclist extends Clown {
     this.x += this.facing * CONFIG.clowns.unicyclist.speed * dt;
     if (this.x <= minX) { this.x = minX; this.facing = 1; }
     if (this.x >= maxX) { this.x = maxX; this.facing = -1; }
-    this.wheel += CONFIG.clowns.unicyclist.speed * dt / 13;
+    this.wheel += CONFIG.clowns.unicyclist.speed * dt / 24;
     if (boxesOverlap(this.box, game.pierre.box)) {
       game.pierre.hurt(CONFIG.clowns.unicyclist.contactDamage, this.x);
     }
   }
 
+  // Polka-dot suit, ruffled collar, orange hair, pedaling a unicycle.
   parts() {
-    const a = this.wheel, r = 11;
-    const ca = Math.cos(a) * r, sa = Math.sin(a) * r;
+    const a = this.wheel;
+    const wobble = Math.sin(this.anim * 6) * 4;
+    const suit = '#e53935';
+    const pedal = k => [Math.cos(a + k) * 12, -24 + Math.sin(a + k) * 12];
+    const leg = (hipX, k, fill) => {
+      const foot = pedal(k), hip = [hipX, -72];
+      const knee = [(hip[0] + foot[0]) / 2 + 12, (hip[1] + foot[1]) / 2 - 2];
+      return [
+        limb(...hip, ...knee, 15, 13, fill),
+        limb(...knee, ...foot, 13, 11, fill),
+        { shape: 'circle', x: foot[0] + 8, y: foot[1] + 2, r: 13, ry: 6, fill: '#ffd600' },
+      ];
+    };
+    const arm = (sx, ex, hx, dy) => [
+      limb(sx, -106, ex, -98 + dy, 12, 11, suit, { dots: { color: '#ffd600', r: 3, gap: 11 } }),
+      limb(ex, -98 + dy, hx, -110 + dy, 11, 10, suit),
+      { shape: 'circle', x: hx, y: -110 + dy, r: 7, fill: '#fff' },
+    ];
+    const ruff = [];
+    for (let i = 0; i <= 12; i++) {
+      const t = Math.PI * (1 + i / 12);
+      const r = i % 2 ? 16 : 24;
+      ruff.push([Math.cos(t) * r, -108 - Math.sin(t) * r * 0.35]);
+    }
     return [
-      { shape: 'circle', x: 0, y: -13, r: 13, fill: '#ffd600' },
-      { shape: 'line', pts: [[-ca, -13 - sa], [ca, -13 + sa]], lw: 3 },
-      { shape: 'line', pts: [[sa, -13 - ca], [-sa, -13 + ca]], lw: 3 },
-      { shape: 'rect', x: -2, y: -40, w: 4, h: 26, fill: '#1e88e5' },
-      { shape: 'rect', x: -9, y: -43, w: 18, h: 5, fill: INK },
-      { shape: 'circle', x: -12, y: -74, r: 7, fill: '#ffd600' },
-      { shape: 'circle', x: 12, y: -74, r: 7, fill: '#ffd600' },
-      { shape: 'rect', x: -14, y: -64, w: 28, h: 22, fill: '#e53935' },
-      { shape: 'circle', x: -6, y: -56, r: 3, fill: '#ffd600' },
-      { shape: 'circle', x: 5, y: -49, r: 3, fill: '#1e88e5' },
-      { shape: 'line', pts: [[13, -60], [25, -70]], lw: 4 },
-      { shape: 'circle', x: 0, y: -74, r: 11, fill: '#fff' },
-      { shape: 'circle', x: 10, y: -73, r: 4, fill: '#e53935' },
-      { shape: 'line', pts: [[2, -79], [2, -76]], lw: 2.5 },
-      { shape: 'line', pts: [[-3, -68], [3, -66], [7, -68]], lw: 2 },
-      { shape: 'poly', pts: [[-8, -84], [8, -84], [0, -100]], fill: '#43a047' },
+      ...arm(-16, -34, -46, -wobble),
+      ...leg(-4, Math.PI, '#1565c0'),
+      { shape: 'circle', x: 0, y: -24, r: 24, fill: '#2b2b2b' },
+      { shape: 'circle', x: 0, y: -24, r: 17, fill: '#ffd600' },
+      { shape: 'line', pts: [[-Math.cos(a) * 16, -24 - Math.sin(a) * 16], [Math.cos(a) * 16, -24 + Math.sin(a) * 16]], lw: 3 },
+      { shape: 'line', pts: [[Math.sin(a) * 16, -24 - Math.cos(a) * 16], [-Math.sin(a) * 16, -24 + Math.cos(a) * 16]], lw: 3 },
+      { shape: 'circle', x: 0, y: -24, r: 4, fill: INK, flat: true },
+      limb(0, -24, 0, -64, 7, 7, '#9e9e9e', { flat: true }),
+      { shape: 'circle', x: 0, y: -66, r: 13, ry: 5, fill: '#e53935' },
+      { shape: 'poly', pts: [[-21, -110], [21, -110], [25, -70], [-25, -70]], fill: suit, dots: { color: '#ffd600', r: 4, gap: 15 } },
+      ...leg(5, 0, '#1976d2'),
+      { shape: 'poly', pts: ruff, fill: '#fff' },
+      { shape: 'circle', x: -17, y: -133, r: 10, fill: '#ff9800' },
+      { shape: 'circle', x: 17, y: -133, r: 10, fill: '#ff9800' },
+      { shape: 'circle', x: -10, y: -146, r: 9, fill: '#ff9800' },
+      { shape: 'circle', x: 11, y: -146, r: 9, fill: '#ff9800' },
+      { shape: 'circle', x: 0, y: -128, r: 17, ry: 18, fill: '#fff', shade: 0.1 },
+      { shape: 'poly', pts: [[6, -141], [10, -134], [6, -127], [2, -134]], fill: '#42a5f5', flat: true },
+      { shape: 'line', pts: [[6, -137], [6, -131]], lw: 3 },
+      { shape: 'poly', pts: [[-6, -118], [6, -120], [16, -124], [12, -114], [0, -112]], fill: '#c62828', flat: true },
+      { shape: 'circle', x: 14, y: -127, r: 7, fill: '#e53935' },
+      { shape: 'poly', pts: [[-9, -149], [9, -149], [3, -172]], fill: '#43a047' },
+      { shape: 'circle', x: 3, y: -173, r: 4, fill: '#fff', flat: true },
+      ...arm(14, 34, 48, wobble),
     ];
   }
 }
@@ -119,36 +152,49 @@ class PieTosser extends Clown {
   // fly longer, so the arc stays readable.
   throwPie(game) {
     const c = CONFIG.pie;
-    const fromX = this.x + this.facing * 24, fromY = this.y - 78;
-    const toX = game.pierre.x, toY = game.pierre.y - 30;
+    const fromX = this.x + this.facing * 42, fromY = this.y - 144;
+    const toX = game.pierre.x, toY = game.pierre.y - 50;
     const flight = Math.max(c.minFlight, Math.min(c.maxFlight, Math.abs(toX - fromX) * c.flightPerPixel));
     const vx = (toX - fromX) / flight;
     const vy = (toY - fromY - 0.5 * c.gravity * flight * flight) / flight;
     game.pies.push(new Pie(fromX, fromY, vx, vy));
   }
 
+  // A round clown in a bowler hat with a pie at the ready.
   parts() {
-    const windup = this.active && this.throwTimer < CONFIG.clowns.pieTosser.windup;
+    const cfg = CONFIG.clowns.pieTosser;
+    const windup = this.active && this.throwTimer < cfg.windup;
+    const reloaded = !this.active || this.throwTimer < cfg.throwEvery - 0.4;
+    const sleeve = '#43a047', pants = '#7e57c2';
+    const glove = (x, y) => ({ shape: 'circle', x, y, r: 8, fill: '#fff' });
     const parts = [
-      { shape: 'circle', x: -10, y: -5, r: 13, ry: 5, fill: '#e53935' },
-      { shape: 'circle', x: 12, y: -5, r: 13, ry: 5, fill: '#e53935' },
-      { shape: 'rect', x: -17, y: -54, w: 34, h: 46, fill: '#43a047' },
-      { shape: 'circle', x: 0, y: -42, r: 3, fill: '#ffd600' },
-      { shape: 'circle', x: 0, y: -28, r: 3, fill: '#ffd600' },
-      { shape: 'circle', x: -15, y: -68, r: 8, fill: '#1e88e5' },
-      { shape: 'circle', x: 15, y: -68, r: 8, fill: '#1e88e5' },
-      { shape: 'circle', x: 0, y: -66, r: 13, fill: '#fff' },
-      { shape: 'circle', x: 11, y: -65, r: 5, fill: '#e53935' },
-      { shape: 'line', pts: [[3, -72], [3, -68]], lw: 2.5 },
-      { shape: 'line', pts: [[-4, -58], [3, -56], [9, -59]], lw: 2 },
-      { shape: 'rect', x: -9, y: -94, w: 18, h: 14, fill: '#ffd600' },
-      { shape: 'rect', x: -14, y: -81, w: 28, h: 3, fill: INK },
+      limb(-22, -96, -38, -76, 13, 12, sleeve),
+      limb(-38, -76, -32, -56, 12, 11, sleeve),
+      glove(-32, -54),
+      limb(-11, -50, -15, -12, 18, 15, pants),
+      limb(11, -50, 17, -12, 18, 15, pants),
+      { shape: 'circle', x: -18, y: -7, r: 19, ry: 8, fill: '#e53935' },
+      { shape: 'circle', x: 21, y: -7, r: 19, ry: 8, fill: '#e53935' },
+      { shape: 'circle', x: 0, y: -74, r: 31, ry: 32, fill: sleeve, dots: { color: '#ffeb3b', r: 4, gap: 14 } },
+      { shape: 'poly', pts: [[-12, -108], [0, -102], [-12, -96]], fill: '#e53935' },
+      { shape: 'poly', pts: [[12, -108], [0, -102], [12, -96]], fill: '#e53935' },
+      { shape: 'circle', x: -20, y: -124, r: 11, fill: '#1e88e5' },
+      { shape: 'circle', x: 20, y: -124, r: 11, fill: '#1e88e5' },
+      { shape: 'circle', x: 0, y: -122, r: 18, ry: 19, fill: '#fff', shade: 0.1 },
+      { shape: 'poly', pts: [[7, -135], [11, -128], [7, -121], [3, -128]], fill: '#ab47bc', flat: true },
+      { shape: 'line', pts: [[7, -131], [7, -125]], lw: 3 },
+      { shape: 'poly', pts: [[-4, -112], [14, -114], [10, -106], [0, -106]], fill: '#c62828', flat: true },
+      { shape: 'circle', x: 15, y: -121, r: 7, fill: '#e53935' },
+      { shape: 'circle', x: 0, y: -141, r: 13, ry: 11, fill: '#424242' },
+      { shape: 'rect', x: -21, y: -138, w: 42, h: 5, fill: '#424242', flat: true },
     ];
     if (windup) {
-      parts.push({ shape: 'poly', pts: [[12, -50], [18, -52], [26, -74], [20, -76]], fill: '#43a047' });
-      parts.push(...pieParts(24, -78));
+      parts.push(limb(22, -96, 36, -114, 13, 12, sleeve), limb(36, -114, 40, -134, 12, 11, sleeve));
+      parts.push(...pieParts(42, -144), glove(40, -134));
     } else {
-      parts.push({ shape: 'rect', x: 14, y: -50, w: 7, h: 22, fill: '#43a047' });
+      parts.push(limb(22, -96, 36, -80, 13, 12, sleeve), limb(36, -80, 48, -86, 12, 11, sleeve));
+      if (reloaded) parts.push(...pieParts(54, -94));
+      parts.push(glove(48, -86));
     }
     return parts;
   }
@@ -163,8 +209,9 @@ function makeClown(spec, surfaces) {
 // A cream pie in a tin, centered at (x, y).
 function pieParts(x, y) {
   return [
-    { shape: 'circle', x, y: y + 2, r: 11, ry: 4, fill: '#c68642' },
-    { shape: 'circle', x, y: y - 2, r: 9, ry: 4, fill: '#fff8e1' },
+    { shape: 'circle', x, y: y + 3, r: 17, ry: 6, fill: '#c68642' },
+    { shape: 'circle', x, y: y - 3, r: 14, ry: 7, fill: '#fff8e1' },
+    { shape: 'circle', x: x + 3, y: y - 9, r: 4, fill: '#e53935', flat: true },
   ];
 }
 
@@ -206,7 +253,7 @@ class Pie {
 
   render(ctx) {
     if (this.splatT < 0) {
-      drawSketch(ctx, pieParts(0, -5), this.x, this.y, 1);
+      drawSketch(ctx, pieParts(0, -7), this.x, this.y, 1);
       return;
     }
     // A cream splat that fades away.
@@ -215,8 +262,8 @@ class Pie {
     ctx.beginPath();
     for (let i = 0; i < 14; i++) {
       const a = (i / 14) * Math.PI * 2;
-      const r = i % 2 ? 9 : 18;
-      ctx.lineTo(this.x + Math.cos(a) * r * 1.4, this.y - 6 + Math.sin(a) * r * 0.7);
+      const r = i % 2 ? 13 : 26;
+      ctx.lineTo(this.x + Math.cos(a) * r * 1.4, this.y - 8 + Math.sin(a) * r * 0.7);
     }
     ctx.closePath();
     ctx.fillStyle = '#fff8e1';

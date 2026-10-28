@@ -80,74 +80,53 @@ class Hand {
   render(ctx) {
     if (this.state === 'away') return;
     let { x, y } = this.tip;
-    let tilt = 0;
     if (this.side === 'left') {
       const w = this.cfg.wobble;
       x += Math.sin(this.time * 11) * w;
       y += Math.cos(this.time * 8) * w * 0.6;
-      tilt = Math.sin(this.time * 6) * 0.08;
     }
-    ctx.save();
-    ctx.translate(x, y);
-    if (this.side === 'left') ctx.scale(-1, 1);
-    ctx.rotate(tilt);
-    drawHand(ctx, this.side === 'right' ? 'pen' : 'crayon', -(CONFIG.panel.y + y) - 20);
-    ctx.restore();
+    const topY = -(CONFIG.panel.y + y) - 20;
+    drawSketch(ctx, handParts(this.side === 'right' ? 'pen' : 'crayon', topY), x, y,
+      this.side === 'right' ? 1 : -1, 1, { lineWidth: 4.5 });
   }
 }
 
-// A big cartoon hand with the tool's tip at (0, 0) and the hand up and to
-// the right of it. The sleeve runs up to `topY` (the top of the screen).
-function drawHand(ctx, tool, topY) {
-  const ang = -0.95;                     // the tool points down-left from the hand
-  const cx = Math.cos(ang) * 105 + 12;   // palm center
-  const cy = Math.sin(ang) * 105 - 4;
+// A big cartoon hand, as parts, with the tool's tip at (0, 0) and the hand
+// up and to the right of it. The sleeve runs up to `topY` (the top of the
+// screen).
+function handParts(tool, topY) {
+  const ang = -0.95;                       // the tool points down-left from the hand
+  const c = Math.cos(ang), s = Math.sin(ang);
+  const along = (u, v) => [u * c - v * s, u * s + v * c];   // tool axis -> local
+  const poly = (pts, fill, extra) => ({ shape: 'poly', pts: pts.map(([u, v]) => along(u, v)), fill, ...extra });
+  const blob = (u, v, r, fill) => { const [x, y] = along(u, v); return { shape: 'circle', x, y, r, fill }; };
+  const box = (u, v, w, h) => [[u, v], [u + w, v], [u + w, v + h], [u, v + h]];
   const skin = '#f6c9a0';
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = INK;
-  ctx.lineJoin = 'round';
+  const [px, py] = along(158, -6);         // palm center
 
-  const box = (x, y, w, h, fill) => {
-    ctx.fillStyle = fill;
-    ctx.fillRect(x, y, w, h);
-    ctx.strokeRect(x, y, w, h);
-  };
-  const oval = (x, y, rx, ry, fill) => {
-    ctx.beginPath();
-    ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
-    ctx.fillStyle = fill;
-    ctx.fill();
-    ctx.stroke();
-  };
-  const tri = (pts, fill) => {
-    ctx.beginPath();
-    pts.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)));
-    ctx.closePath();
-    ctx.fillStyle = fill;
-    ctx.fill();
-    ctx.stroke();
-  };
-
-  // Sleeve and cuff, straight up out of the top of the screen.
-  box(cx - 28, topY, 60, cy - 30 - topY, '#3949ab');
-  box(cx - 32, cy - 46, 68, 20, '#fff');
-  oval(cx, cy, 38, 32, skin);
-
-  // The tool and the fingers wrapped around it, along the tool's axis.
-  ctx.save();
-  ctx.rotate(ang);
+  const parts = [
+    { shape: 'rect', x: px - 44, y: topY, w: 92, h: py - 46 - topY, fill: '#3949ab', stripes: { color: 'rgba(255,255,255,0.18)', gap: 26, width: 3 } },
+    { shape: 'rect', x: px - 50, y: py - 72, w: 104, h: 32, fill: '#fff' },
+    { shape: 'circle', x: px, y: py, r: 58, ry: 50, fill: skin },
+  ];
   if (tool === 'pen') {
-    tri([[0, 0], [18, -5], [18, 5]], '#c9c9c9');
-    box(18, -6, 86, 12, INK);
-    box(64, -6, 8, 12, '#9e9e9e');
+    parts.push(
+      poly([[0, 0], [28, -8], [28, 8]], '#cfd8dc'),
+      poly(box(28, -10, 132, 20), '#222'),
+      poly(box(96, -10, 14, 20), '#9e9e9e', { flat: true }),
+    );
   } else {
-    tri([[0, 0], [22, -10], [22, 10]], '#26a69a');
-    box(22, -11, 74, 22, '#26a69a');
-    box(44, -11, 34, 22, '#80cbc4');
+    parts.push(
+      poly([[0, 0], [34, -16], [34, 16]], '#26a69a'),
+      poly(box(34, -18, 116, 36), '#26a69a'),
+      poly(box(66, -18, 54, 36), '#80cbc4', { stripes: { color: 'rgba(17,17,17,0.3)', gap: 9, width: 2 } }),
+    );
   }
-  oval(60, -6, 11, 13, skin);
-  oval(74, -8, 11, 14, skin);
-  oval(88, -7, 11, 13, skin);
-  oval(68, 14, 16, 9, skin);   // thumb
-  ctx.restore();
+  parts.push(
+    blob(92, -12, 17, skin),
+    blob(112, -15, 18, skin),
+    blob(132, -13, 17, skin),
+    blob(104, 24, 16, skin),   // thumb
+  );
+  return parts;
 }

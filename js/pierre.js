@@ -97,32 +97,79 @@ class Pierre {
     this.health = Math.min(CONFIG.pierre.maxHealth, this.health + amount);
   }
 
-  // Black, white and grey only: striped shirt, white face, black beret.
+  // Black, white and grey only: striped shirt, white face and gloves,
+  // black beret, mime makeup. Arms and legs are posed from joint positions.
   parts() {
-    const swing = this.onGround && this.vx !== 0 ? Math.sin(this.walkPhase) * 5 : 0;
-    const parts = [
-      { shape: 'rect', x: -10 + swing, y: -24, w: 8, h: 24, fill: '#666' },
-      { shape: 'rect', x: 2 - swing, y: -24, w: 8, h: 24, fill: '#666' },
-      { shape: 'rect', x: -16, y: -46, w: 6, h: 18, fill: '#fff' },
-      { shape: 'rect', x: -13, y: -48, w: 26, h: 26, fill: '#fff' },
-      { shape: 'line', pts: [[-13, -42], [13, -42]], lw: 3 },
-      { shape: 'line', pts: [[-13, -35], [13, -35]], lw: 3 },
-      { shape: 'line', pts: [[-13, -28], [13, -28]], lw: 3 },
-      { shape: 'circle', x: 0, y: -58, r: 11, fill: '#fff' },
-      { shape: 'line', pts: [[3, -62], [3, -59]], lw: 2.5 },
-      { shape: 'line', pts: [[7, -62], [7, -59]], lw: 2.5 },
-      { shape: 'line', pts: [[3, -53], [8, -53]], lw: 2 },
-      { shape: 'circle', x: -1, y: -69, r: 12, ry: 4, fill: INK },
-      { shape: 'circle', x: -1, y: -74, r: 2, fill: INK },
-    ];
-    if (this.punchTimer > 0) {
-      parts.push({ shape: 'rect', x: 8, y: -46, w: 24, h: 7, fill: '#fff' });
-      parts.push({ shape: 'circle', x: 35, y: -43, r: 6, fill: '#fff' });
+    const shirt = { stripes: { color: '#1c1c1c', gap: 12, width: 5 } };
+    const pants = '#3b3b3b';
+    const walking = this.onGround && this.vx !== 0;
+    const ph = this.walkPhase;
+    const bob = walking ? Math.abs(Math.sin(ph)) * 3 : 0;
+    const hurt = this.knockLock > 0;
+    const lean = hurt ? -6 : 0;
+
+    // Legs: [hip, knee, foot] for the back and front leg.
+    let legs;
+    if (!this.onGround) {
+      legs = [[[-5, -46], [6, -28], [-2, -10]], [[6, -46], [22, -34], [16, -14]]];
     } else {
-      parts.push({ shape: 'rect', x: 8, y: -46, w: 6, h: 18, fill: '#fff' });
-      parts.push({ shape: 'circle', x: 11, y: -26, r: 4, fill: '#fff' });
+      legs = [0, Math.PI].map((off, i) => {
+        const swing = walking ? Math.sin(ph + off) * 0.55 : (i ? 0.08 : -0.08);
+        const hip = [i ? 6 : -5, -46];
+        const knee = [hip[0] + Math.sin(swing) * 23, hip[1] + Math.cos(swing) * 23];
+        const shin = swing - (walking ? Math.max(0, Math.sin(ph + off + 1.2)) * 0.5 : 0);
+        return [hip, knee, [knee[0] + Math.sin(shin) * 23, knee[1] + Math.cos(shin) * 23]];
+      });
     }
-    return parts;
+    // Arms: [shoulder, elbow, hand].
+    let backArm, frontArm;
+    if (hurt) {
+      backArm = [[-4, -84], [-20, -98], [-26, -116]];
+      frontArm = [[8, -84], [22, -100], [18, -118]];
+    } else if (this.punchTimer > 0) {
+      backArm = [[-4, -84], [-10, -68], [4, -74]];
+      frontArm = [[8, -84], [30, -84], [52, -83]];
+    } else if (!this.onGround) {
+      backArm = [[-4, -84], [-20, -92], [-24, -108]];
+      frontArm = [[8, -84], [24, -94], [30, -110]];
+    } else {
+      const a = walking ? Math.sin(ph) * 0.5 : 0.1;
+      const arm = (sx, ang) => {
+        const elbow = [sx + Math.sin(ang) * 20, -84 + Math.cos(ang) * 20];
+        return [[sx, -84], elbow, [elbow[0] + Math.sin(ang + 0.5) * 19, elbow[1] + Math.cos(ang + 0.5) * 19]];
+      };
+      backArm = arm(-4, a);
+      frontArm = arm(8, -a);
+    }
+    const leg = ([hip, knee, foot]) => [
+      limb(...hip, ...knee, 15, 13, pants),
+      limb(...knee, ...foot, 13, 11, pants),
+      { shape: 'circle', x: foot[0] + 6, y: foot[1] - 3, r: 11, ry: 5, fill: INK },
+    ];
+    const arm = ([sh, el, hand], glove) => [
+      limb(...sh, ...el, 12, 11, '#fff', shirt),
+      limb(...el, ...hand, 11, 10, '#fff', shirt),
+      { shape: 'circle', x: hand[0], y: hand[1], r: glove, fill: '#fff' },
+    ];
+    const up = (parts) => parts.map(p => shiftPart(p, lean, -bob));
+
+    return up([
+      ...arm(backArm, 7),
+      ...leg(legs[0]),
+      ...leg(legs[1]),
+      { shape: 'poly', pts: [[-12, -54], [14, -54], [15, -40], [-13, -40]], fill: pants },
+      { shape: 'poly', pts: [[-14, -90], [16, -90], [13, -50], [-11, -50]], fill: '#fff', ...shirt },
+      { shape: 'circle', x: 3, y: -104, r: 16, ry: 17, fill: '#fff', shade: 0.1 },
+      // Mime makeup: a high arched brow, a long painted eye, a black tear, dark lips.
+      { shape: 'line', pts: [[2, -115], [8, -120], [14, -116]], lw: 3 },
+      { shape: 'poly', pts: [[8, -114], [11, -108], [8, -100], [5, -108]], fill: INK, flat: true },
+      { shape: 'circle', x: 9, y: -108, r: 1.5, fill: '#fff', flat: true },
+      { shape: 'poly', pts: [[13, -100], [15, -96], [13, -93], [11, -96]], fill: INK, flat: true },
+      { shape: 'poly', pts: [[6, -92], [17, -93], [12, -88]], fill: '#222', flat: true },
+      { shape: 'circle', x: 1, y: -120, r: 18, ry: 6, fill: INK },
+      { shape: 'circle', x: 1, y: -127, r: 3, fill: INK },
+      ...arm(frontArm, this.punchTimer > 0 ? 9 : 7),
+    ]);
   }
 
   render(ctx) {
@@ -130,4 +177,11 @@ class Pierre {
     if (this.invincible > 0 && Math.floor(this.invincible * 12) % 2 === 1) return;
     drawSketch(ctx, this.parts(), this.x, this.y, this.facing);
   }
+}
+
+// A copy of a part moved by (dx, dy).
+function shiftPart(p, dx, dy) {
+  if (!dx && !dy) return p;
+  if (p.pts) return { ...p, pts: p.pts.map(([x, y]) => [x + dx, y + dy]) };
+  return { ...p, x: p.x + dx, y: p.y + dy };
 }

@@ -1,6 +1,10 @@
 // The game loop, keyboard input, game states and moving between panels.
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+// Draw in logical 960 x 640 coordinates on a canvas with one pixel per
+// device pixel, so the ink lines stay sharp on high-density screens.
+canvas.width = CONFIG.canvas.width * DPR;
+canvas.height = CONFIG.canvas.height * DPR;
 
 // Keyboard state. `down` holds keys being held; `pressed` holds keys that
 // went down since the last frame (for one-shot actions like jump and punch).
@@ -112,7 +116,7 @@ const Game = {
 
   // A comic impact word ("POW!") at a spot in the panel.
   burst(text, x, y, color = '#e53935') {
-    this.effects.push({ text, x, y, color, t: 0, tilt: (Math.random() - 0.5) * 0.4 });
+    this.effects.push({ text, x, y, color, t: 0, tilt: (Math.random() - 0.5) * 0.4, seed: Math.floor(Math.random() * 1e6) });
   },
 
   update(dt) {
@@ -145,8 +149,8 @@ const Game = {
 
   render() {
     const { x, y, w, h } = CONFIG.panel;
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, CONFIG.canvas.width, CONFIG.canvas.height);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    drawPaper(ctx);
 
     // Everything inside the panel is drawn in panel coordinates and clipped
     // to the panel.
@@ -155,8 +159,11 @@ const Game = {
     ctx.beginPath();
     ctx.rect(0, 0, w, h);
     ctx.clip();
-    drawPanelBackground(ctx, this.panel);
+    drawPanelBackground(ctx, this.panel, this.panelIndex);
     drawSurfaces(ctx, this.panel.platforms);
+    drawCaption(ctx, this.panel.caption);
+    for (const c of this.clowns) if (c.active) drawShadow(ctx, this.surfaces, c.x, c.y, c.w);
+    drawShadow(ctx, this.surfaces, this.pierre.x, this.pierre.y, this.pierre.w);
     if (this.panel.theEnd) drawTheEnd(ctx);
     else if (this.gateOpen) drawExitArrow(ctx, this.time);
     else drawGate(ctx);

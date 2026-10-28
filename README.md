@@ -49,7 +49,7 @@ Numbers match section 6 of [SPEC.md](SPEC.md). Every [P1] criterion is met. No [
 | 18 | P3 | Not met | Seltzer Spritzer, Juggler, Balloon Twister and Clown Car are not built. |
 | 19 | P1 | Met | A thick wavy ink line blocks the right edge until every clown in the panel is defeated; then it disappears and a bobbing yellow arrow shows. |
 | 20 | P1 | Met | Walking off the right edge loads the next panel with Pierre on its left side. |
-| 21 | P1 | Met | Panels 1 to 5 match the table in spec 5.2 (panel 1 shows the controls). The HUD shows "Panel N / 6". |
+| 21 | P1 | Met | Panels 1 to 5 match the table in spec 5.2 (panel 1 shows the controls in a caption box). The HUD shows "Panel N / 6". |
 | 22 | P1 | Met | Panel 6 shows "THE END"; R starts a new game. |
 | 23 | P2 | Partly met | "THE END" is shown, but it isn't drawn in by a hand, and Pierre doesn't bow. |
 | 24 | P1 | Met | At 3 health or less, a second hand holding a crayon wobbles in and draws a sandwich in 1.2 seconds. It won't draw another while one is on screen, or within 10 seconds of the last. |
@@ -74,13 +74,13 @@ Numbers match section 6 of [SPEC.md](SPEC.md). Every [P1] criterion is met. No [
 |---|---|
 | `js/config.js` | `CONFIG`: every tuning value (speeds, health, damage, draw times, cooldowns, sizes). Change numbers here. |
 | `js/panels.js` | `PANELS`: the six panels as data: platforms, which clowns stand where, in drawing order, and the `crowded` flag. |
-| `js/render.js` | The comic look: halftone background, platforms, panel border, HUD, "POW!" bursts, ink-line gate, exit arrow, "CANCELLED!" and "THE END". |
-| `js/drawing.js` | The shared "being drawn" system both hands use. Things are lists of outlined shapes ("parts"). `drawSketch` draws them finished or partly drawn, `penPoint` says where the pen tip is, and `DrawJob` runs one drawing and makes the thing `active` when it's done. |
+| `js/render.js` | The comic look: paper gutters, the brush panel border, the KlownKon convention-hall background (drawn once per panel and cached), stage-riser platforms, caption boxes, shadows, "POW!" bursts, ink-line gate, exit arrow, "CANCELLED!", "THE END" and the HUD. |
+| `js/drawing.js` | The ink style and the shared "being drawn" system both hands use. Things are lists of shapes ("parts"); `limb` makes tapered arms and legs. `drawSketch` inks them with brush outlines, cel shadows, hatching, stripes and dots, finished or partly drawn. `penPoint` says where the pen tip is, and `DrawJob` runs one drawing and makes the thing `active` when it's done. |
 | `js/physics.js` | Surfaces (ground plus platforms), landing on them, and box overlap tests. |
-| `js/pierre.js` | `Pierre`: input, movement, jumping, punching, getting hurt, healing, and his parts (the drawing of him). |
+| `js/pierre.js` | `Pierre`: input, movement, jumping, punching, getting hurt, healing, and his parts, posed from joint positions for walking, punching, jumping and getting hit. |
 | `js/clowns.js` | `Clown` base class, `Unicyclist`, `PieTosser`, `Pie`, and `makeClown(spec)`, which turns a panel entry into a clown. |
 | `js/items.js` | `Sandwich`. |
-| `js/hands.js` | `Hand`, one class for both hands: queue things, fly in, draw each with a `DrawJob`, leave. `drawHand` draws the hand holding a pen or crayon. |
+| `js/hands.js` | `Hand`, one class for both hands: queue things, fly in, draw each with a `DrawJob`, leave. `handParts` is the hand holding a pen or crayon, as inked parts. |
 | `js/main.js` | Keyboard input (`Input`, `KEYS`), the `Game` object (states, loading panels, the gate, the sandwich rescue and where to put it, update and render order), and the frame loop. |
 
 **How a panel runs:**
@@ -123,7 +123,7 @@ Numbers match section 6 of [SPEC.md](SPEC.md). Every [P1] criterion is met. No [
 
 ## Where I cut corners, and why
 
-- **Simple art.** Everything is rectangles, circles and polygons with thick outlines, which the spec allows. The time went into the two hands and the drawing effect, which the spec says matter most.
+- **Art drawn in code.** There are no image files. Characters are inked shapes with brush outlines, cel shadows and hatching, so the hands can still draw them stroke by stroke. Every panel uses the same convention-hall background for now.
 - **One-way platforms only.** There are no solid walls inside a panel; the only walls are the panel edges and the ink line. Nothing in the spec needs inner walls yet.
 - **The Pie Tosser doesn't hurt on contact.** The spec only gives contact damage to the Unicyclist, so Pierre can walk through a Pie Tosser.
 - **Item placement is a simple score.** Each candidate spot on the ground or a platform scores higher the farther it is from clowns, minus a pull toward Pierre, and spots right under him are avoided.

@@ -5,8 +5,8 @@ class Sandwich {
     this.kind = 'sandwich';
     this.x = x;
     this.y = y;
-    this.w = 36;
-    this.h = 28;
+    this.w = 54;
+    this.h = 42;
     this.facing = 1;
     this.active = false;
     this.drawProgress = 0;
@@ -27,12 +27,12 @@ class Sandwich {
 
   parts() {
     return [
-      { shape: 'rect', x: -17, y: -8, w: 34, h: 8, fill: '#e0a85a' },
-      { shape: 'poly', pts: [[-19, -8], [-13, -14], [-7, -9], [0, -14], [7, -9], [13, -14], [19, -8]], fill: '#66bb6a' },
-      { shape: 'rect', x: -16, y: -16, w: 32, h: 5, fill: '#e53935' },
-      { shape: 'circle', x: 0, y: -20, r: 18, ry: 8, fill: '#e0a85a' },
-      { shape: 'line', pts: [[-7, -23], [-5, -22]], lw: 2 },
-      { shape: 'line', pts: [[3, -24], [5, -23]], lw: 2 },
+      { shape: 'rect', x: -25, y: -12, w: 50, h: 12, fill: '#e0a85a' },
+      { shape: 'poly', pts: [[-28, -12], [-19, -21], [-10, -13], [0, -21], [10, -13], [19, -21], [28, -12]], fill: '#66bb6a' },
+      { shape: 'rect', x: -24, y: -24, w: 48, h: 8, fill: '#e53935' },
+      { shape: 'circle', x: 0, y: -30, r: 27, ry: 12, fill: '#e0a85a' },
+      { shape: 'line', pts: [[-10, -34], [-7, -33]], lw: 2.5 },
+      { shape: 'line', pts: [[5, -36], [8, -35]], lw: 2.5 },
     ];
   }
 
