@@ -49,6 +49,11 @@ const CONFIG = {
     push: 30,              // knocks clowns back further
     swings: 10,            // breaks after this many swings, hit or miss
   },
+  pageTurn: {
+    zoomOut: 0.6,          // from the panel out to the whole page
+    hold: 0.7,             // on the page while the reading arrow draws
+    zoomIn: 0.6,           // into the next panel
+  },
   drawing: {
     outlineShare: 0.6,     // the outline takes 60% of a drawing, color the rest
   },

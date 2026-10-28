@@ -167,3 +167,9 @@ ok looks good still more time, can you tyr to add a weapon or something relative
 **What came back:** the squeaky hammer (criterion 27). The left hand draws it as soon as Pierre enters the crowded panel 4, so it's ready before the first clown (criterion 29). While Pierre holds it, J swings it for 3 damage with more reach and knockback, and a "SQUEAK!" burst. It breaks after 10 swings ("CRACK!"), and the HUD shows the swings left.
 
 To keep the code tidy, the AI made a shared `Item` base class for the sandwich and the hammer, and added hammer checks to `tests/smoke.js`. The first screenshot showed the hammer covering Pierre's face while he carried it, so it's now carried angled forward.
+
+### Prompt 15 (sent while the AI was finishing the hammer)
+```
+the transitions in between levels should have a cool animation like you are moving between panels in a comic. like a zoom out and look at all the panels, then zoom in or omsething
+```
+**What came back:** a page turn between panels (new file `js/page.js`). When Pierre walks off the edge, the game freezes and the camera zooms out to the whole comic page ("BIG TOP BRAWL · PAGE 1"). Cleared panels show as Pierre left them, and panels ahead are faded. A dotted reading arrow draws across the gutter to the next panel, then the camera zooms into it, with the panel border growing to become the real one. The AI's screenshots showed the arrowhead sitting in the middle of the next panel at the end of the zoom, so it now stops at the panel edges and fades out. This also covers most of criterion 38.

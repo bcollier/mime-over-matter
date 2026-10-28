@@ -5,7 +5,7 @@ A comic-book brawler-platformer played panel by panel. Pierre, a silent mime, is
 ## Handoff: where things stand (Wed 10/28/2026)
 
 - **Built:** every [P1] criterion. The first version (spec sections 1 to 8) is a complete, winnable 6-panel game: walk, jump, punch, two clown types, the right hand drawing clowns, the left hand's sandwich rescue, Game Over and THE END.
-- **Since the first playtest:** a comic ink art style (spec 9.5), multi-level risers in every panel (criterion 40), and the squeaky hammer, which the left hand draws at the start of the crowded panel 4 (criteria 27 and 29).
+- **Since the first playtest:** a comic ink art style (spec 9.5), multi-level risers in every panel (criterion 40), the squeaky hammer, which the left hand draws at the start of the crowded panel 4 (criteria 27 and 29), and a page-turn animation between panels: the camera zooms out to the whole comic page, a reading arrow points to the next panel, and the camera zooms into it (the start of criterion 38).
 - **Approved but not built:** [SPEC.md section 9](SPEC.md#9-expansion-approved-wed-10282026-after-the-first-playtest) expands the game to 18 panels on 3 pages, with obstacles and hazards, combos, a jump kick, hit feel, mime powers, and the extra clowns and items as [P2]. Its build order is in spec 9.8, and the [Next steps](#next-steps) below map each step to the code.
 - **The playtest verdict to fix first:** "the levels are really boring." Panels need obstacles, hazards and more variety (criterion 41) before anything else.
 - **Before changing anything,** run `node tests/smoke.js` and play through once.
@@ -34,6 +34,7 @@ It loads the real game scripts with a fake canvas and checks the core rules:
 - punching, the gate and moving between panels;
 - the sandwich rescue and its cooldown;
 - the hammer: drawn first in the crowded panel, 3 damage, breaks after 10 swings;
+- the page turn: it starts when Pierre walks off the edge, the game is frozen during it, and play resumes in the next panel;
 - Game Over, restart and THE END.
 
 It doesn't check how anything looks or feels, so play the game too.
@@ -51,7 +52,7 @@ Not built yet: K (throw knife), P (pause), and the mime powers L, U and I (spec 
 
 ## Acceptance criteria
 
-Numbers match sections 6 and 9.7 of [SPEC.md](SPEC.md). Every [P1] criterion is met. Of the rest, the art style, multi-level panels and the hammer are in.
+Numbers match sections 6 and 9.7 of [SPEC.md](SPEC.md). Every [P1] criterion is met. Of the rest, the art style, multi-level panels, the hammer and the page view are in.
 
 | # | Pri | Status | Notes |
 |---|---|---|---|
@@ -92,7 +93,7 @@ Numbers match sections 6 and 9.7 of [SPEC.md](SPEC.md). Every [P1] criterion is 
 | 35 | P2 | Not met | No pause. |
 | 36 | P3 | Not met | No sound. |
 | 37 | P2 | Not met | Still one page of 6 panels. |
-| 38 | P2 | Not met | No page overview between pages. |
+| 38 | P2 | Partly met | Between every pair of panels, the camera zooms out to the whole page and back in (`js/page.js`). Cleared panels show as Pierre left them, and panels ahead are faded. There's only one page so far, so it never moves on to a second page. |
 | 39 | P2 | Partly met | Page 1's setting, the KlownKon convention hall, is built (`paintConventionHall` in `js/render.js`). No backstage or big top yet. |
 | 40 | P2 | Met for panels 1 to 5 | Each fighting panel has 2 to 4 risers in a different layout: a climb, a hill, a staircase, a crowded tower, a valley. The smoke test checks every riser can be reached. |
 | 41 | P2 | Not met | No solid obstacles or hazards. Platforms are one-way. |
@@ -112,6 +113,7 @@ Numbers match sections 6 and 9.7 of [SPEC.md](SPEC.md). Every [P1] criterion is 
 |---|---|
 | `js/config.js` | `CONFIG`: every tuning value (speeds, health, damage, draw times, cooldowns, sizes). Change numbers here. |
 | `js/panels.js` | `PANELS`: the six panels as data: platforms, which clowns stand where (in drawing order), the `crowded` flag and caption text. |
+| `js/page.js` | The page turn between panels: `pageSlot` (where each panel sits on the page), `drawComicPage` (the whole page, with the reading arrow) and `drawPageTurn` (the zoom out, hold and zoom in, timed by `CONFIG.pageTurn`). |
 | `js/render.js` | The comic look: paper gutters, the brush panel border, the KlownKon convention-hall background (drawn once per panel and cached), stage-riser platforms, caption boxes, shadows, "POW!" bursts, ink-line gate, exit arrow, "CANCELLED!", "THE END" and the HUD. |
 | `js/drawing.js` | The ink style and the shared "being drawn" system both hands use. Things are lists of shapes ("parts"); `limb` makes tapered arms and legs. `drawSketch` inks them with brush outlines, cel shadows, hatching, stripes and dots, finished or partly drawn. `penPoint` says where the pen tip is, and `DrawJob` runs one drawing and makes the thing `active` when it's done. |
 | `js/physics.js` | Surfaces (ground plus platforms), landing on them, and box overlap tests. |
@@ -119,7 +121,7 @@ Numbers match sections 6 and 9.7 of [SPEC.md](SPEC.md). Every [P1] criterion is 
 | `js/clowns.js` | `Clown` base class, `Unicyclist`, `PieTosser`, `Pie`, and `makeClown(spec)`, which turns a panel entry into a clown. |
 | `js/items.js` | `Item` (the shared base: drawn by the left hand, picked up by touch once finished), `Sandwich`, `Hammer`, and `hammerParts`, which both the hammer on the floor and the one in Pierre's hand use. A new item subclasses `Item` and defines `pickUp(pierre)` and `parts()`. |
 | `js/hands.js` | `Hand`, one class for both hands: queue things, fly in, draw each with a `DrawJob`, leave. `handParts` is the hand holding a pen or crayon, as inked parts. |
-| `js/main.js` | Keyboard input (`Input`, `KEYS`), the `Game` object (states, loading panels, the gate, the sandwich rescue and where to put it, update and render order), and the frame loop. |
+| `js/main.js` | Keyboard input (`Input`, `KEYS`), the `Game` object (states `play`, `pageTurn`, `gameover` and `end`; loading panels; `nextPanel`, which snapshots panels for the page view; the gate; the sandwich rescue and where to put it; update and render order), and the frame loop. `drawPanelContents` draws everything inside the panel, for both the live screen and snapshots. |
 | `tests/smoke.js` | The Node smoke test (see [Tests](#tests)). |
 
 **How a panel runs:**
@@ -155,7 +157,7 @@ In the order of spec 9.8, with where each one goes in the code:
 5. **Pages 2 and 3 (37 to 39).**
    - Turn `PANELS` into a list of pages and show "Page P · Panel N" in `drawHUD`.
    - Add `paintBackstage` and `paintBigTop` beside `paintConventionHall`, picked by a `setting` field on each page.
-   - Add a `'page'` state to `Game` that draws the finished page laid out between pages.
+   - The page view already exists (`js/page.js`). Make `pageSlot` and the page title use the panel's position within its page, and pass that page's panels to `drawComicPage`.
 6. **Mime powers (45 to 47), then the extra items (31).** A new `js/mime.js` with one class per power and a cooldown each. Wall: a short-lived box that pies and clowns treat as solid. Rope: pull the nearest clown in front of Pierre. Box: set the nearest clown's `stun` for a few seconds and draw a mimed box around it.
 7. **The remaining [P2] polish (2, 8, 13, 23, 34, 35):**
    - title screen with the story captions (a `'title'` state);

@@ -33,7 +33,7 @@ addEventListener('keyup', e => Input.down.delete(keyName(e)));
 addEventListener('blur', () => Input.down.clear());
 
 const Game = {
-  state: 'play',   // 'play', 'gameover' or 'end'
+  state: 'play',   // 'play', 'pageTurn', 'gameover' or 'end'
   time: 0,
 
   restart() {
@@ -41,6 +41,7 @@ const Game = {
     this.rightHand = new Hand('right');
     this.leftHand = new Hand('left');
     this.sandwichCooldown = 0;
+    this.pictures = [];   // each panel as Pierre left it, for the page view
     this.state = 'play';
     this.loadPanel(0);
   },
@@ -126,18 +127,39 @@ const Game = {
     this.effects.push({ text, x, y, color, t: 0, tilt: (Math.random() - 0.5) * 0.4, seed: Math.floor(Math.random() * 1e6) });
   },
 
+  // Pierre walked off the right edge: snapshot the panel he's leaving and
+  // the next one as he enters it, then play the page turn between them.
+  // The game is frozen until it finishes.
+  nextPanel() {
+    const from = this.panelIndex;
+    this.pictures[from] = this.snapshot();
+    this.loadPanel(from + 1);
+    this.pictures[from + 1] = this.snapshot();
+    this.turn = { from, to: from + 1, t: 0 };
+    this.state = 'pageTurn';
+  },
+
+  snapshot() {
+    return offscreen(CONFIG.panel.w, CONFIG.panel.h, g => this.drawPanelContents(g));
+  },
+
   update(dt) {
     this.time += dt;
-    if (this.state !== 'play' && Input.wasPressed(...KEYS.restart)) {
+    if ((this.state === 'gameover' || this.state === 'end') && Input.wasPressed(...KEYS.restart)) {
       this.restart();
       return;
     }
     if (this.state === 'gameover') return;   // freeze the panel under the stamp
+    if (this.state === 'pageTurn') {
+      const c = CONFIG.pageTurn;
+      this.turn.t += dt;
+      if (this.turn.t >= c.zoomOut + c.hold + c.zoomIn) this.state = this.panel.theEnd ? 'end' : 'play';
+      return;
+    }
 
     this.pierre.update(dt, this);
     if (this.pierre.x - this.pierre.w / 2 > CONFIG.panel.w) {
-      this.loadPanel(this.panelIndex + 1);
-      if (this.panel.theEnd) this.state = 'end';
+      this.nextPanel();
       return;
     }
     this.rightHand.update(dt);
@@ -159,6 +181,15 @@ const Game = {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     drawPaper(ctx);
 
+    if (this.state === 'pageTurn') {
+      const zoom = drawPageTurn(ctx, this.turn, this.pictures);
+      ctx.save();
+      ctx.globalAlpha = zoom;   // the HUD fades out with the zoom
+      drawHUD(ctx, this);
+      ctx.restore();
+      return;
+    }
+
     // Everything inside the panel is drawn in panel coordinates and clipped
     // to the panel.
     ctx.save();
@@ -166,6 +197,23 @@ const Game = {
     ctx.beginPath();
     ctx.rect(0, 0, w, h);
     ctx.clip();
+    this.drawPanelContents(ctx);
+    ctx.restore();
+
+    drawPanelFrame(ctx);
+    drawHUD(ctx, this);
+
+    // The hands reach in from outside the panel, over everything.
+    ctx.save();
+    ctx.translate(x, y);
+    this.rightHand.render(ctx);
+    this.leftHand.render(ctx);
+    ctx.restore();
+  },
+
+  // Everything inside the panel, in panel coordinates. Also used to
+  // snapshot a panel for the page view.
+  drawPanelContents(ctx) {
     drawPanelBackground(ctx, this.panel, this.panelIndex);
     drawSurfaces(ctx, this.panel.platforms);
     drawCaption(ctx, this.panel.caption);
@@ -180,17 +228,6 @@ const Game = {
     this.pierre.render(ctx);
     for (const e of this.effects) drawBurst(ctx, e);
     if (this.state === 'gameover') drawGameOver(ctx);
-    ctx.restore();
-
-    drawPanelFrame(ctx);
-    drawHUD(ctx, this);
-
-    // The hands reach in from outside the panel, over everything.
-    ctx.save();
-    ctx.translate(x, y);
-    this.rightHand.render(ctx);
-    this.leftHand.render(ctx);
-    ctx.restore();
   },
 };
 

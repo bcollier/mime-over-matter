@@ -106,8 +106,16 @@ check('the gate is closed while a clown is alive', get('Game.gateOpen') === fals
 get('Game.clowns.forEach(c => c.hurt(99, 0, Game))');
 run(0.1);
 check('the gate opens once every clown is defeated', get('Game.gateOpen') === true);
-key('keydown', 'ArrowRight'); run(4); key('keyup', 'ArrowRight');
-check('walking off the right edge loads panel 2', get('Game.panelIndex') === 1);
+key('keydown', 'ArrowRight');
+for (let i = 0; i < 600 && get('Game.state') === 'play'; i++) run(1 / 60);
+key('keyup', 'ArrowRight');
+check('walking off the right edge starts a page turn to panel 2',
+  get('Game.state') === 'pageTurn' && get('Game.panelIndex') === 1 && !!get('Game.pictures[0]'));
+const handBefore = get('Game.rightHand.state');
+run(1);
+check('the game is frozen during the page turn', get('Game.state') === 'pageTurn' && get('Game.rightHand.state') === handBefore);
+run(1);
+check('play resumes in panel 2 after the page turn', get('Game.state') === 'play' && get('Game.panelIndex') === 1);
 
 // --- The left hand's sandwich rescue ---
 get('Game.pierre.hurt = () => false; Game.pierre.health = 3');
@@ -155,7 +163,7 @@ check('R restarts at panel 1 with full health and no items',
 get('Game.loadPanel(4); Game.pierre.hurt = () => false');
 run(14);
 get('Game.clowns.forEach(c => c.hurt(99, 0, Game))');
-key('keydown', 'ArrowRight'); run(5); key('keyup', 'ArrowRight');
+key('keydown', 'ArrowRight'); run(8); key('keyup', 'ArrowRight');
 check('clearing panel 5 reaches THE END', get('Game.state') === 'end' && get('Game.panelIndex') === 5);
 
 console.log(failures ? `\n${failures} check(s) failed` : '\nall checks passed');
