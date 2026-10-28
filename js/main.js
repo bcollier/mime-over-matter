@@ -35,6 +35,8 @@ const Game = {
   restart() {
     this.pierre = new Pierre();
     this.rightHand = new Hand('right');
+    this.leftHand = new Hand('left');
+    this.sandwichCooldown = 0;
     this.state = 'play';
     this.loadPanel(0);
   },
@@ -44,16 +46,52 @@ const Game = {
     this.panel = PANELS[index];
     this.surfaces = surfacesOf(this.panel);
     this.clowns = [];
+    this.items = [];
     this.pies = [];
     this.effects = [];
     this.defeated = 0;
     this.pierre.placeAtStart();
 
     // The right hand draws this panel's clowns, one at a time, in order.
+    this.leftHand.reset();
     this.rightHand.reset();
     for (const spec of this.panel.clowns) {
       this.rightHand.draw(makeClown(spec, this.surfaces), clown => this.clowns.push(clown));
     }
+  },
+
+  // The left hand's rescue (spec 5.5): when Pierre is low on health, it
+  // quickly draws a sandwich. Not while one is on screen or being drawn,
+  // and not again until the cooldown is over.
+  helpIfLosing(dt) {
+    this.sandwichCooldown -= dt;
+    if (this.panel.theEnd || this.leftHand.busy || this.sandwichCooldown > 0) return;
+    if (this.pierre.health > CONFIG.sandwich.lowHealth) return;
+    if (this.items.some(i => i.kind === 'sandwich')) return;
+    const spot = this.spotForItem();
+    this.leftHand.draw(new Sandwich(spot.x, spot.y), item => this.items.push(item));
+    this.sandwichCooldown = CONFIG.sandwich.cooldown;
+  },
+
+  // Somewhere Pierre can reach, away from clowns: the spot on the ground
+  // or a platform that's farthest from every clown, with a pull toward
+  // Pierre so it isn't on the far side of the room. Not right on top of
+  // him, though, or he'd hide the drawing.
+  spotForItem() {
+    const right = Math.min(CONFIG.panel.w, this.rightLimit()) - 40;
+    const spots = [];
+    for (const s of this.surfaces) {
+      for (let x = Math.max(s.x + 25, 40); x <= Math.min(s.x + s.w - 25, right); x += 30) {
+        spots.push({ x, y: s.y });
+      }
+    }
+    const clowns = [...this.clowns, ...this.rightHand.queue.map(q => q.thing)];
+    const score = spot => {
+      const fromClowns = Math.min(260, ...clowns.map(c => Math.hypot(c.x - spot.x, c.y - spot.y)));
+      const fromPierre = Math.hypot(this.pierre.x - spot.x, this.pierre.y - spot.y);
+      return fromClowns - 0.35 * fromPierre - (fromPierre < 80 ? 200 : 0);
+    };
+    return spots.reduce((best, spot) => (score(spot) > score(best) ? spot : best));
   },
 
   clownDefeated() {
@@ -92,6 +130,10 @@ const Game = {
       return;
     }
     this.rightHand.update(dt);
+    this.leftHand.update(dt);
+    this.helpIfLosing(dt);
+    for (const i of this.items) if (i.active) i.update(dt, this);
+    this.items = this.items.filter(i => !i.taken);
     for (const c of this.clowns) if (c.active) c.update(dt, this);
     this.clowns = this.clowns.filter(c => !c.dead);
     for (const p of this.pies) p.update(dt, this);
@@ -118,6 +160,7 @@ const Game = {
     if (this.panel.theEnd) drawTheEnd(ctx);
     else if (this.gateOpen) drawExitArrow(ctx, this.time);
     else drawGate(ctx);
+    for (const i of this.items) i.render(ctx);
     for (const c of this.clowns) c.render(ctx);
     for (const p of this.pies) p.render(ctx);
     this.pierre.render(ctx);
@@ -132,6 +175,7 @@ const Game = {
     ctx.save();
     ctx.translate(x, y);
     this.rightHand.render(ctx);
+    this.leftHand.render(ctx);
     ctx.restore();
   },
 };

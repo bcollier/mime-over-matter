@@ -47,5 +47,7 @@ const CONFIG = {
   burstTime: 0.4,          // how long "POW!" and friends stay up
   sandwich: {
     lowHealth: 3,          // the left hand draws a sandwich at or below this
+    heal: 4,               // about four hits' worth
+    cooldown: 10,          // at least this long between low-health sandwiches
   },
 };
