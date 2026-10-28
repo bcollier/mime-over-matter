@@ -97,3 +97,27 @@ be more broad about what the gameplay is like. specifiying pixels per second see
 ### Who decided what (for my Phase 2 partner)
 - **My decisions:** comic-book platformer inspired by Comix Zone; a hand drawing enemies while you play and a second hand drawing help; enemies can't hurt you until fully drawn; an optional countdown; hurting the hand as a stretch goal (it shows pain, shakes it off, leaves); the helper hand mainly draws sandwiches when you're losing, sometimes at random, and before rooms with lots of enemies; the hammer does extra damage and can hurt the hand; throwing knives instead of a gun; balloon sword, pogo stick, and slinky as fun weapons; the animal helper as a stretch goal; you lose when health runs out; a mime pulled into a comic full of clowns; a light and fun "odd duck" tone.
 - **Drafted by the AI and approved by me:** the story and character names, the six clown types and what each one does, the Invisible Dog as the animal helper, what the slinky does, the "CANCELLED!" game-over stamp, the panel contents, and the few rough numbers left in the spec. I decided the spec should describe feel rather than exact values (Prompt 9), so exact speeds, damage, and timings are left to whoever builds it.
+
+## Phase 1, part 2: building (Wed 10/28/2026)
+
+Same tool and model: Claude Code (CLI), Claude Opus 5.5 (`claude-opus-5-5`).
+
+### Prompt 10
+```
+look at the spec in mime-over-matter, create build plan and check it with me and then start building
+```
+**What came back:** a build plan for me to check before any code was written:
+- Plain JavaScript and canvas with ordinary `<script>` tags. ES modules would break opening `index.html` straight from disk.
+- One file per part of the game, with all tuning values in `config.js` and the panel table in `panels.js`, as the spec's section 8 asks.
+- One shared "being drawn" system for both hands.
+- A build order of one commit per step: skeleton, Pierre, right hand and clowns, panels and win/lose, left-hand sandwich, then README and this log.
+
+It asked whether to stop after the [P1] criteria and docs or keep going into [P2]. To check what the README needed, the AI also opened the assignment page itself. I hadn't given it the page.
+
+### Prompt 11
+```
+stop for me to play it before P2 work
+```
+**What came back:** the [P1] game, built in five commits, then this log and the README. The AI tested each step with a throwaway script that runs the game in Node with a fake canvas, plus screenshots in Chrome. It found and fixed one problem along the way: the left hand was drawing the sandwich right on top of Pierre, which hid the drawing, so it now prefers a spot a short walk away. All [P2] and [P3] work is left for next time; the README lists what's met.
+
+(One unrelated question about Claude Code itself is left out.)
