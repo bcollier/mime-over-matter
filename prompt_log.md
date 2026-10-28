@@ -188,3 +188,10 @@ the punching is boring, perhaps he takes his hat off and slaps the clowns with h
 ```
 ok keep doing small cycles of knocking things off the P2 list etc and checking with me
 ```
+**What came back:** the beret slap and the nose gag were finished and committed. The AI then suggested obstacles and hazards (criterion 41) as the next cycle.
+
+### Prompt 18
+```
+we are out of time, write your final commit to github, ensuring everything is well documented and ready for handoff
+```
+**What came back:** a last pass over the README (stale lines fixed, the next cycle noted in the handoff section) and this log. Everything is in the final commit.

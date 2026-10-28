@@ -4,10 +4,11 @@ A comic-book brawler-platformer played panel by panel. Pierre, a silent mime, is
 
 ## Handoff: where things stand (Wed 10/28/2026)
 
-- **Built:** every [P1] criterion. The first version (spec sections 1 to 8) is a complete, winnable 6-panel game: walk, jump, punch, two clown types, the right hand drawing clowns, the left hand's sandwich rescue, Game Over and THE END.
+- **Built:** every [P1] criterion. The first version (spec sections 1 to 8) is a complete, winnable 6-panel game: walk, jump, attack, two clown types, the right hand drawing clowns, the left hand's sandwich rescue, Game Over and THE END.
 - **Since the first playtest:** a comic ink art style (spec 9.5), multi-level risers in every panel (criterion 40), the squeaky hammer, which the left hand draws at the start of the crowded panel 4 (criteria 27 and 29), a page-turn animation between panels (the camera zooms out to the whole comic page, a reading arrow points to the next panel, and the camera zooms into it), the beret slap in place of the punch, knocking clowns' noses off, and clowns' speech bubbles (criteria 13, 38, 49 and 50).
 - **Approved but not built:** [SPEC.md section 9](SPEC.md#9-expansion-approved-wed-10282026-after-the-first-playtest) expands the game to 18 panels on 3 pages, with obstacles and hazards, combos, a jump kick, hit feel, mime powers, and the extra clowns and items as [P2]. Its build order is in spec 9.8, and the [Next steps](#next-steps) below map each step to the code.
-- **The playtest verdict to fix first:** "the levels are really boring." Panels need obstacles, hazards and more variety (criterion 41) before anything else.
+- **The playtest verdict to fix first:** "the levels are really boring." Panels need obstacles, hazards and more variety (criterion 41) before anything else. This was the planned next cycle when time ran out.
+- **How it was built:** in small cycles (build, test, screenshot, check with the designer). Every commit message says what changed, and `prompt_log.md` has every prompt word for word.
 - **Before changing anything,** run `node tests/smoke.js` and play through once.
 
 ## Install and run
@@ -148,7 +149,7 @@ In the order of spec 9.8, with where each one goes in the code:
    - Add `walls: [{x, y, w, h}]` to panels in `js/panels.js`. In `js/physics.js`, add a function that pushes a body out of walls sideways and lets it stand on top. Call it from `Pierre.update` and `Unicyclist.act` (the Unicyclist should turn at walls).
    - Hazards fit as a `hazards` list per panel, with classes beside the clowns: a banana peel that sets Pierre sliding, a trapdoor that opens on a timer, a conveyor that adds `vx` while he stands on it.
 2. **Combo, jump kick and hit feel (42 to 44).**
-   - Combo: in `Pierre.punch`, count presses within a short window, and make the third a finisher with more damage and a bigger `hitPush`. Add a pose for each hit in `Pierre.parts`.
+   - Combo: in `Pierre.punch`, count presses within a short window. In `Pierre.strike`, make the third hit a finisher with more damage and a bigger push (`Clown.hurt` takes a push). Add a pose for each hit in `Pierre.parts`, next to the beret slap.
    - Jump kick: when `!this.onGround`.
    - Hit freeze: a `Game.freeze` timer that skips `update` for a few frames.
    - Screen shake: a random offset applied in `Game.render` before drawing the panel.
@@ -162,7 +163,7 @@ In the order of spec 9.8, with where each one goes in the code:
    - Add `paintBackstage` and `paintBigTop` beside `paintConventionHall`, picked by a `setting` field on each page.
    - The page view already exists (`js/page.js`). Make `pageSlot` and the page title use the panel's position within its page, and pass that page's panels to `drawComicPage`.
 6. **Mime powers (45 to 47), then the extra items (31).** A new `js/mime.js` with one class per power and a cooldown each. Wall: a short-lived box that pies and clowns treat as solid. Rope: pull the nearest clown in front of Pierre. Box: set the nearest clown's `stun` for a few seconds and draw a mimed box around it.
-7. **The remaining [P2] polish (2, 8, 13, 23, 34, 35):**
+7. **The remaining [P2] polish (2, 8, 23, 34, 35):**
    - title screen with the story captions (a `'title'` state);
    - Pierre's empty "…" bubble when hit (`drawSpeechBubble` in `js/render.js` is ready to use);
    - Pierre's bow and a hand drawing "THE END";
@@ -177,7 +178,8 @@ In the order of spec 9.8, with where each one goes in the code:
 - If Pierre leaves a panel while the left hand is still drawing a sandwich, the sandwich is lost and the 10-second cooldown still applies.
 - Pies already in the air keep flying after the last clown is defeated and can still hit Pierre.
 - Difficulty is untuned. Since the art test, Pierre's hitbox is larger (40 × 124), so pies hit him more easily, and the crowded panel 4 is hard. Tune `CONFIG.pie.damage`, `CONFIG.clowns.pieTosser.throwEvery` and `CONFIG.sandwich` together.
-- The new multi-level panels have been checked by the smoke test and in Chrome screenshots, but not yet played through by hand.
+- The multi-level panels, the hammer, the page turn, the beret slap and the nose gag have been checked by the smoke test and in Chrome screenshots, but not yet played through by hand.
+- A clown that gives up on its nose leaves the nose lying where it landed for the rest of the panel. Clowns can't jump between platforms, so a nose that falls off a clown's platform is always out of its reach.
 
 ## Where I cut corners, and why
 
