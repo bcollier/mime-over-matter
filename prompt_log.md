@@ -141,3 +141,21 @@ It then asked me four questions. My answers:
 - **Length:** 18 panels, as 3 pages of 6.
 - **Fighting:** combos and hit feel, the spec's items, and mime powers. I didn't pick the boss fight against the right hand.
 - **Art:** still drawn in code, but in a comic ink style, not with sprite images.
+
+**What came back (art test):** a comic ink style for everything:
+- brush outlines that are thicker on the shadow side, cel shadows with cross-hatching, striped and polka-dot costumes;
+- Pierre and the clowns redrawn about 1.7× bigger, with posable arms and legs;
+- inked hands;
+- a KlownKon convention-hall background, aged paper gutters, a brush panel border, caption boxes and extruded "POW!" lettering.
+
+The AI took screenshots and fixed two things it saw itself. The face shadows covered half of each face and hid Pierre's makeup, so they're lighter now. The background was as bright as the characters, so it's faded back. It then asked me to judge the look, to choose mime powers, and to approve spec changes.
+
+### Prompt 13
+```
+overall look is much better, but there is not much dimensionality to the level like platforms to jump on or obsticles. the levels are really boring. approve all spec changes. in 20 minutes we need to stop and hand this project off to someone else so make sure documentation is good and code is clean
+```
+**What came back:**
+- **Spec:** section 9 added with the changes I approved: 18 panels on 3 pages with a setting for each, level dimensionality with obstacles and hazards, combos, a jump kick, hit feel, the extra clowns and items moved to [P2], and new criteria 37 to 48. I hadn't picked mime powers myself, so "approve all" took the AI's three suggestions: Invisible Wall, Invisible Rope and Invisible Box.
+- **Levels:** with only 20 minutes left, the AI gave panels 1 to 5 multi-level riser layouts (data only) instead of rushing obstacles. Obstacles and hazards are listed as the first next step.
+- **Tests:** it added `tests/smoke.js`, which checks the core rules and that every riser can be reached by jumping.
+- **Cleanup and docs:** it removed one unused function and rewrote the README for handoff.

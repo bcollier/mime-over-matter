@@ -2,6 +2,14 @@
 
 A comic-book brawler-platformer played panel by panel. Pierre, a silent mime, is trapped in a comic full of clowns. The cartoonist's right hand draws clowns into each panel to stop him, and his left hand secretly draws sandwiches to help. The full design is in [SPEC.md](SPEC.md).
 
+## Handoff: where things stand (Wed 10/28/2026)
+
+- **Built:** every [P1] criterion. The first version (spec sections 1 to 8) is a complete, winnable 6-panel game: walk, jump, punch, two clown types, the right hand drawing clowns, the left hand's sandwich rescue, Game Over and THE END.
+- **Since the first playtest:** a comic ink art style (spec 9.5), and multi-level risers in every panel (criterion 40).
+- **Approved but not built:** [SPEC.md section 9](SPEC.md#9-expansion-approved-wed-10282026-after-the-first-playtest) expands the game to 18 panels on 3 pages, with obstacles and hazards, combos, a jump kick, hit feel, mime powers, and the extra clowns and items as [P2]. Its build order is in spec 9.8, and the [Next steps](#next-steps) below map each step to the code.
+- **The playtest verdict to fix first:** "the levels are really boring." Panels need obstacles, hazards and more variety (criterion 41) before anything else.
+- **Before changing anything,** run `node tests/smoke.js` and play through once.
+
 ## Install and run
 
 You need any current desktop browser (Chrome, Firefox, Safari or Edge). Nothing to install, no build step, no server.
@@ -11,6 +19,23 @@ You need any current desktop browser (Chrome, Firefox, Safari or Edge). Nothing 
 3. Click the game once if the keyboard doesn't respond, so the page has focus.
 
 The scripts are plain `<script>` tags, not ES modules, on purpose: browsers block modules on `file://` pages, so modules would need a local server.
+
+### Tests
+
+With [Node](https://nodejs.org) installed (any recent version, no packages), run from the repo root:
+
+```
+node tests/smoke.js
+```
+
+It loads the real game scripts with a fake canvas and checks the core rules:
+- panel data, including that every platform can be reached by jumping;
+- clowns being harmless while drawn;
+- punching, the gate and moving between panels;
+- the sandwich rescue and its cooldown;
+- Game Over, restart and THE END.
+
+It doesn't check how anything looks or feels, so play the game too.
 
 ## Controls
 
@@ -25,7 +50,7 @@ Not built yet: K (throw knife) and P (pause). There is no title screen yet, so t
 
 ## Acceptance criteria
 
-Numbers match section 6 of [SPEC.md](SPEC.md). Every [P1] criterion is met. No [P2] or [P3] work has started, except the "POW!" burst, which is part of criterion 5.
+Numbers match sections 6 and 9.7 of [SPEC.md](SPEC.md). Every [P1] criterion is met. Of the rest, only the art style and multi-level panels have been worked on; criterion 5's "POW!" burst is the only polish in.
 
 | # | Pri | Status | Notes |
 |---|---|---|---|
@@ -46,10 +71,10 @@ Numbers match section 6 of [SPEC.md](SPEC.md). Every [P1] criterion is met. No [
 | 15 | P1 | Met | Unicyclist rides back and forth on its own ground or platform, turns at ledges, walls and the ink line, and hurts on contact. 2 punches. |
 | 16 | P1 | Met | Pie Tosser stays put, faces Pierre and lobs a pie in an arc at where he is every 2.6 seconds. 4 punches. Pies splat on Pierre, platforms or the ground. |
 | 17 | P1 | Met | A defeated clown is removed at once. |
-| 18 | P3 | Not met | Seltzer Spritzer, Juggler, Balloon Twister and Clown Car are not built. |
+| 18 | P2 (was P3) | Not met | Seltzer Spritzer, Juggler, Balloon Twister and Clown Car are not built. |
 | 19 | P1 | Met | A thick wavy ink line blocks the right edge until every clown in the panel is defeated; then it disappears and a bobbing yellow arrow shows. |
 | 20 | P1 | Met | Walking off the right edge loads the next panel with Pierre on its left side. |
-| 21 | P1 | Met | Panels 1 to 5 match the table in spec 5.2 (panel 1 shows the controls in a caption box). The HUD shows "Panel N / 6". |
+| 21 | P1 | Met for 6 panels | Panels 1 to 5 have the clowns from the table in spec 5.2 (panel 1 shows the controls in a caption box). The HUD shows "Panel N / 6". Spec 9.6 now asks for 18 panels; see criterion 37. |
 | 22 | P1 | Met | Panel 6 shows "THE END"; R starts a new game. |
 | 23 | P2 | Partly met | "THE END" is shown, but it isn't drawn in by a hand, and Pierre doesn't bow. |
 | 24 | P1 | Met | At 3 health or less, a second hand holding a crayon wobbles in and draws a sandwich in 1.2 seconds. It won't draw another while one is on screen, or within 10 seconds of the last. |
@@ -59,12 +84,24 @@ Numbers match section 6 of [SPEC.md](SPEC.md). Every [P1] criterion is met. No [
 | 28 | P2 | Not met | No knives. |
 | 29 | P2 | Not met | Panel 4 is marked `crowded: true` in `js/panels.js`, but nothing reads that flag yet. |
 | 30 | P2 | Not met | No random items. |
-| 31 | P3 | Not met | No balloon sword, pogo stick or slinky. |
+| 31 | P2 (was P3) | Not met | No balloon sword, pogo stick or slinky. |
 | 32 | P3 | Not met | No Invisible Dog. |
 | 33 | P3 | Not met | The hand can't be hurt. |
 | 34 | P2 | Partly met | Only "POW!" on punches. No "BONK!" when Pierre is hit, and no "SQUEAK!" or "POP!" (those need items). |
 | 35 | P2 | Not met | No pause. |
 | 36 | P3 | Not met | No sound. |
+| 37 | P2 | Not met | Still one page of 6 panels. |
+| 38 | P2 | Not met | No page overview between pages. |
+| 39 | P2 | Partly met | Page 1's setting, the KlownKon convention hall, is built (`paintConventionHall` in `js/render.js`). No backstage or big top yet. |
+| 40 | P2 | Met for panels 1 to 5 | Each fighting panel has 2 to 4 risers in a different layout: a climb, a hill, a staircase, a crowded tower, a valley. The smoke test checks every riser can be reached. |
+| 41 | P2 | Not met | No solid obstacles or hazards. Platforms are one-way. |
+| 42 | P2 | Not met | No combo. |
+| 43 | P2 | Not met | No jump kick. |
+| 44 | P2 | Not met | No hit freeze or screen shake. Clowns flicker and pause briefly when hit. |
+| 45 | P2 | Not met | No Invisible Wall. |
+| 46 | P2 | Not met | No Invisible Rope. |
+| 47 | P2 | Not met | No Invisible Box. |
+| 48 | P3 | Not met | Only two clown types so far. |
 
 ## Code map
 
@@ -73,7 +110,7 @@ Numbers match section 6 of [SPEC.md](SPEC.md). Every [P1] criterion is met. No [
 | File | What's in it |
 |---|---|
 | `js/config.js` | `CONFIG`: every tuning value (speeds, health, damage, draw times, cooldowns, sizes). Change numbers here. |
-| `js/panels.js` | `PANELS`: the six panels as data: platforms, which clowns stand where, in drawing order, and the `crowded` flag. |
+| `js/panels.js` | `PANELS`: the six panels as data: platforms, which clowns stand where (in drawing order), the `crowded` flag and caption text. |
 | `js/render.js` | The comic look: paper gutters, the brush panel border, the KlownKon convention-hall background (drawn once per panel and cached), stage-riser platforms, caption boxes, shadows, "POW!" bursts, ink-line gate, exit arrow, "CANCELLED!", "THE END" and the HUD. |
 | `js/drawing.js` | The ink style and the shared "being drawn" system both hands use. Things are lists of shapes ("parts"); `limb` makes tapered arms and legs. `drawSketch` inks them with brush outlines, cel shadows, hatching, stripes and dots, finished or partly drawn. `penPoint` says where the pen tip is, and `DrawJob` runs one drawing and makes the thing `active` when it's done. |
 | `js/physics.js` | Surfaces (ground plus platforms), landing on them, and box overlap tests. |
@@ -82,6 +119,7 @@ Numbers match section 6 of [SPEC.md](SPEC.md). Every [P1] criterion is met. No [
 | `js/items.js` | `Sandwich`. |
 | `js/hands.js` | `Hand`, one class for both hands: queue things, fly in, draw each with a `DrawJob`, leave. `handParts` is the hand holding a pen or crayon, as inked parts. |
 | `js/main.js` | Keyboard input (`Input`, `KEYS`), the `Game` object (states, loading panels, the gate, the sandwich rescue and where to put it, update and render order), and the frame loop. |
+| `tests/smoke.js` | The Node smoke test (see [Tests](#tests)). |
 
 **How a panel runs:**
 1. `Game.loadPanel` queues each clown from `PANELS` with the right hand.
@@ -96,36 +134,50 @@ Numbers match section 6 of [SPEC.md](SPEC.md). Every [P1] criterion is met. No [
 - `Game.pierre.health = 3` triggers the sandwich rescue.
 - `Game.clowns.forEach(c => c.hurt(99, 0, Game))` defeats every finished clown.
 
-## Next steps (in priority order, from spec section 7)
+## Next steps
 
-1. **Squeaky hammer and throwing knives (27, 28).**
-   - Add `Hammer` and `Knives` classes to `js/items.js`, shaped like `Sandwich`.
-   - Give `Pierre` a held melee item with swings left, and a knife count.
-   - Show both in `drawHUD`.
-   - Add K to `KEYS`.
-2. **The left hand's other triggers (29, 30).**
-   - In `Game.loadPanel`, if `panel.crowded`, call `this.leftHand.draw(...)` with a random item at `spotForItem()`. The left hand draws faster than the right, so the item finishes before the first clown.
-   - For the random trigger, roll about 1 in 3 per fighting panel and schedule a draw at a random time. Mostly sandwiches.
-3. **Polish (2, 8, 13, 23, 34, 35):**
-   - title screen with the story captions (add a `'title'` state);
-   - Pierre's empty "…" bubble when hit, and the clowns' shouts when they come to life (both in `Clown` and `Pierre`);
+In the order of spec 9.8, with where each one goes in the code:
+
+1. **Obstacles and hazards (41).** This was the playtest's biggest complaint.
+   - Add `walls: [{x, y, w, h}]` to panels in `js/panels.js`. In `js/physics.js`, add a function that pushes a body out of walls sideways and lets it stand on top. Call it from `Pierre.update` and `Unicyclist.act` (the Unicyclist should turn at walls).
+   - Hazards fit as a `hazards` list per panel, with classes beside the clowns: a banana peel that sets Pierre sliding, a trapdoor that opens on a timer, a conveyor that adds `vx` while he stands on it.
+2. **Combo, jump kick and hit feel (42 to 44).**
+   - Combo: in `Pierre.punch`, count presses within a short window, and make the third a finisher with more damage and a bigger `hitPush`. Add a pose for each hit in `Pierre.parts`.
+   - Jump kick: when `!this.onGround`.
+   - Hit freeze: a `Game.freeze` timer that skips `update` for a few frames.
+   - Screen shake: a random offset applied in `Game.render` before drawing the panel.
+3. **Hammer and knives (27, 28), then the left hand's other triggers (29, 30).**
+   - Add `Hammer` and `Knives` classes to `js/items.js`, shaped like `Sandwich`. Give `Pierre` a held melee item with swings left and a knife count, show both in `drawHUD`, and add K to `KEYS`.
+   - Crowded panels: in `Game.loadPanel`, if `panel.crowded`, call `this.leftHand.draw(...)` with an item at `spotForItem()`. The left hand draws faster than the right, so the item finishes before the first clown.
+   - Random items: roll about 1 in 3 per fighting panel and schedule a draw at a random time. Mostly sandwiches.
+4. **Extra clowns (18), one new type per panel at first (48).** Subclass `Clown` in `js/clowns.js` and add the type to `makeClown`. Each clown needs `parts()` (built with `limb` and the patterns in `js/drawing.js`) and `act(dt, game)`.
+5. **Pages 2 and 3 (37 to 39).**
+   - Turn `PANELS` into a list of pages and show "Page P · Panel N" in `drawHUD`.
+   - Add `paintBackstage` and `paintBigTop` beside `paintConventionHall`, picked by a `setting` field on each page.
+   - Add a `'page'` state to `Game` that draws the finished page laid out between pages.
+6. **Mime powers (45 to 47), then the extra items (31).** A new `js/mime.js` with one class per power and a cooldown each. Wall: a short-lived box that pies and clowns treat as solid. Rope: pull the nearest clown in front of Pierre. Box: set the nearest clown's `stun` for a few seconds and draw a mimed box around it.
+7. **The remaining [P2] polish (2, 8, 13, 23, 34, 35):**
+   - title screen with the story captions (a `'title'` state);
+   - Pierre's empty "…" bubble when hit, and the clowns' shouts when they come to life;
    - Pierre's bow and a hand drawing "THE END";
-   - "BONK!" when Pierre is hit (`game.burst` in `Pierre.hurt`);
+   - "BONK!" when Pierre is hit;
    - P to pause.
-4. **[P3], in the spec's order:** hurting the hand with the hammer (33), pogo stick, balloon sword, more clowns, slinky, Invisible Dog, countdown ring, sound.
+
+   Then [P3].
 
 ## Known bugs
 
 - The hands can run past the edge of the canvas. When the right hand draws a clown near the right edge, its sleeve covers "Panel N / 6" in the HUD for a moment.
 - If Pierre leaves a panel while the left hand is still drawing a sandwich, the sandwich is lost and the 10-second cooldown still applies.
 - Pies already in the air keep flying after the last clown is defeated and can still hit Pierre.
-- The game has been checked with scripted runs and spot checks in Chrome, not yet played through by hand. Difficulty (especially crowded panel 4) is untuned.
+- Difficulty is untuned. Since the art test, Pierre's hitbox is larger (40 × 124), so pies hit him more easily, and the crowded panel 4 is hard. Tune `CONFIG.pie.damage`, `CONFIG.clowns.pieTosser.throwEvery` and `CONFIG.sandwich` together.
+- The new multi-level panels have been checked by the smoke test and in Chrome screenshots, but not yet played through by hand.
 
 ## Where I cut corners, and why
 
-- **Art drawn in code.** There are no image files. Characters are inked shapes with brush outlines, cel shadows and hatching, so the hands can still draw them stroke by stroke. Every panel uses the same convention-hall background for now.
-- **One-way platforms only.** There are no solid walls inside a panel; the only walls are the panel edges and the ink line. Nothing in the spec needs inner walls yet.
+- **Art drawn in code.** There are no image files. Characters are inked shapes with brush outlines, cel shadows and hatching, so the hands can still draw them stroke by stroke. Every panel uses the same convention-hall background (with a different banner position and crowd), because page 1 is all one setting.
+- **One-way platforms only.** There are no solid walls inside a panel; the only walls are the panel edges and the ink line. Spec 9.2 now asks for solid obstacles; that's next step 1.
 - **The Pie Tosser doesn't hurt on contact.** The spec only gives contact damage to the Unicyclist, so Pierre can walk through a Pie Tosser.
 - **Item placement is a simple score.** Each candidate spot on the ground or a platform scores higher the farther it is from clowns, minus a pull toward Pierre, and spots right under him are avoided.
-- **No automated tests in the repo.** I tested with a throwaway script that runs the game in Node with a fake canvas, plus checks in Chrome. Porting that to a small test page would help whoever continues this.
+- **Tests check rules, not feel.** `tests/smoke.js` covers the core rules, but nothing checks the art or how the game plays.
 - **Enter also restarts.** The spec uses Enter for "continue from title and end screens". There's no title screen yet, so Enter does the same as R.
