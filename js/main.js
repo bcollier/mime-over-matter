@@ -33,7 +33,7 @@ const Game = {
   time: 0,
 
   restart() {
-    this.pierre = { health: CONFIG.pierre.maxHealth };
+    this.pierre = new Pierre();
     this.state = 'play';
     this.loadPanel(0);
   },
@@ -41,10 +41,27 @@ const Game = {
   loadPanel(index) {
     this.panelIndex = index;
     this.panel = PANELS[index];
+    this.surfaces = surfacesOf(this.panel);
+    this.clowns = [];
+    this.effects = [];
+    this.pierre.placeAtStart();
+  },
+
+  // How far right Pierre can go: the ink line on the right edge.
+  rightLimit() {
+    return CONFIG.panel.w - CONFIG.gateWidth;
+  },
+
+  // A comic impact word ("POW!") at a spot in the panel.
+  burst(text, x, y, color = '#e53935') {
+    this.effects.push({ text, x, y, color, t: 0, tilt: (Math.random() - 0.5) * 0.4 });
   },
 
   update(dt) {
     this.time += dt;
+    this.pierre.update(dt, this);
+    for (const e of this.effects) e.t += dt;
+    this.effects = this.effects.filter(e => e.t < CONFIG.burstTime);
   },
 
   render() {
@@ -61,6 +78,8 @@ const Game = {
     ctx.clip();
     drawPanelBackground(ctx, this.panel);
     drawSurfaces(ctx, this.panel.platforms);
+    this.pierre.render(ctx);
+    for (const e of this.effects) drawBurst(ctx, e);
     ctx.restore();
 
     drawPanelFrame(ctx);

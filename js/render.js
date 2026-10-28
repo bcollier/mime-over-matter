@@ -95,3 +95,29 @@ function drawHUD(ctx, game) {
   outlinedText(ctx, 'MIME OVER MATTER', CONFIG.canvas.width / 2 + 90, 36, 26, '#fff', { stroke: 5 });
   outlinedText(ctx, `Panel ${game.panelIndex + 1} / ${PANELS.length}`, CONFIG.canvas.width - 30, 36, 26, '#ffd600', { align: 'right', stroke: 5 });
 }
+
+// A comic impact burst: a spiky yellow star with the word on it, popping in
+// and fading out.
+function drawBurst(ctx, b) {
+  const life = b.t / CONFIG.burstTime;
+  const scale = life < 0.25 ? 0.6 + life * 1.6 : 1;
+  ctx.save();
+  ctx.globalAlpha = life > 0.7 ? 1 - (life - 0.7) / 0.3 : 1;
+  ctx.translate(b.x, b.y);
+  ctx.scale(scale, scale);
+  ctx.rotate(b.tilt);
+  ctx.beginPath();
+  for (let i = 0; i < 24; i++) {
+    const r = i % 2 ? 18 : 32;
+    const a = (i / 24) * Math.PI * 2;
+    ctx.lineTo(Math.cos(a) * r * 1.3, Math.sin(a) * r);
+  }
+  ctx.closePath();
+  ctx.fillStyle = '#ffeb3b';
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = INK;
+  ctx.stroke();
+  outlinedText(ctx, b.text, 0, 1, 20, b.color, { stroke: 4 });
+  ctx.restore();
+}
