@@ -60,9 +60,16 @@ const Game = {
     this.defeated++;
   },
 
-  // How far right Pierre can go: the ink line on the right edge.
+  // The ink line goes once every clown in the panel is defeated.
+  get gateOpen() {
+    return !this.panel.theEnd && this.defeated >= this.panel.clowns.length;
+  },
+
+  // How far right Pierre can go: the ink line, or off the edge once it's
+  // gone. THE END panel's right edge is a plain wall.
   rightLimit() {
-    return CONFIG.panel.w - CONFIG.gateWidth;
+    if (this.panel.theEnd) return CONFIG.panel.w;
+    return this.gateOpen ? Infinity : CONFIG.panel.w - CONFIG.gateWidth;
   },
 
   // A comic impact word ("POW!") at a spot in the panel.
@@ -72,7 +79,18 @@ const Game = {
 
   update(dt) {
     this.time += dt;
+    if (this.state !== 'play' && Input.wasPressed(...KEYS.restart)) {
+      this.restart();
+      return;
+    }
+    if (this.state === 'gameover') return;   // freeze the panel under the stamp
+
     this.pierre.update(dt, this);
+    if (this.pierre.x - this.pierre.w / 2 > CONFIG.panel.w) {
+      this.loadPanel(this.panelIndex + 1);
+      if (this.panel.theEnd) this.state = 'end';
+      return;
+    }
     this.rightHand.update(dt);
     for (const c of this.clowns) if (c.active) c.update(dt, this);
     this.clowns = this.clowns.filter(c => !c.dead);
@@ -80,6 +98,7 @@ const Game = {
     this.pies = this.pies.filter(p => !p.done);
     for (const e of this.effects) e.t += dt;
     this.effects = this.effects.filter(e => e.t < CONFIG.burstTime);
+    if (this.pierre.health <= 0) this.state = 'gameover';
   },
 
   render() {
@@ -96,10 +115,14 @@ const Game = {
     ctx.clip();
     drawPanelBackground(ctx, this.panel);
     drawSurfaces(ctx, this.panel.platforms);
+    if (this.panel.theEnd) drawTheEnd(ctx);
+    else if (this.gateOpen) drawExitArrow(ctx, this.time);
+    else drawGate(ctx);
     for (const c of this.clowns) c.render(ctx);
     for (const p of this.pies) p.render(ctx);
     this.pierre.render(ctx);
     for (const e of this.effects) drawBurst(ctx, e);
+    if (this.state === 'gameover') drawGameOver(ctx);
     ctx.restore();
 
     drawPanelFrame(ctx);

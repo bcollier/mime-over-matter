@@ -121,3 +121,68 @@ function drawBurst(ctx, b) {
   outlinedText(ctx, b.text, 0, 1, 20, b.color, { stroke: 4 });
   ctx.restore();
 }
+
+// The thick ink line blocking the right edge until the panel is cleared.
+function drawGate(ctx) {
+  const x = CONFIG.panel.w - CONFIG.gateWidth / 2;
+  ctx.save();
+  ctx.strokeStyle = INK;
+  ctx.fillStyle = INK;
+  ctx.lineWidth = CONFIG.gateWidth * 0.75;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  for (let y = 0; y <= CONFIG.groundY; y += 20) {
+    ctx.lineTo(x + Math.sin(y * 0.05) * 2, y);
+  }
+  ctx.stroke();
+  for (const [dy, r] of [[130, 5], [290, 4], [420, 6]]) {   // ink drips
+    ctx.beginPath();
+    ctx.arc(x - 9, dy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+// A bobbing arrow at the right edge once the way is open.
+function drawExitArrow(ctx, time) {
+  const x = CONFIG.panel.w - 90 + Math.sin(time * 6) * 8, y = CONFIG.groundY - 60;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x, y - 12);
+  ctx.lineTo(x + 40, y - 12);
+  ctx.lineTo(x + 40, y - 28);
+  ctx.lineTo(x + 72, y);
+  ctx.lineTo(x + 40, y + 28);
+  ctx.lineTo(x + 40, y + 12);
+  ctx.lineTo(x, y + 12);
+  ctx.closePath();
+  ctx.fillStyle = '#ffd600';
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = INK;
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Game Over: a big red "CANCELLED!" stamp across the panel.
+function drawGameOver(ctx) {
+  const { w, h } = CONFIG.panel;
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+  ctx.fillRect(0, 0, w, h);
+  ctx.translate(w / 2, h / 2 - 30);
+  ctx.rotate(-0.18);
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = '#d50000';
+  ctx.strokeRect(-260, -70, 520, 140);
+  outlinedText(ctx, 'CANCELLED!', 0, 4, 96, '#d50000', { stroke: 0 });
+  ctx.restore();
+  outlinedText(ctx, 'Press R to try again', w / 2, h / 2 + 120, 34, '#fff', { stroke: 6 });
+}
+
+// The last panel: "THE END" across the panel.
+function drawTheEnd(ctx) {
+  const { w } = CONFIG.panel;
+  outlinedText(ctx, 'THE END', w / 2, 190, 120, '#e53935', { stroke: 10 });
+  outlinedText(ctx, 'Press R to play again', w / 2, 300, 32, '#fff', { stroke: 6 });
+}
