@@ -24,6 +24,23 @@ const CONFIG = {
     knockbackY: 320,
     knockbackLock: 0.25,   // no control for this long after a hit
   },
+  clowns: {
+    unicyclist: { w: 34, h: 82, health: 2, speed: 150, contactDamage: 1 },
+    pieTosser: { w: 40, h: 88, health: 4, throwEvery: 2.6, firstThrow: 0.5, windup: 0.5 },
+    hitFlash: 0.2,         // a hit clown flickers for this long
+    hitStun: 0.25,         // and stops moving for this long
+    hitPush: 12,           // and gets pushed back this far
+  },
+  pie: {
+    w: 20, h: 10,
+    damage: 1,
+    gravity: 1300,
+    flightPerPixel: 1 / 450, minFlight: 0.6, maxFlight: 1.3,  // longer throws fly longer
+    splatTime: 0.6,
+  },
+  // The cartoonist's hands (spec 5.3 and 5.5). drawTime is per thing drawn.
+  rightHand: { drawTime: 2.0, speed: 1300, enterDelay: 0.4, lineWidth: 4 },
+  leftHand: { drawTime: 1.2, speed: 1000, enterDelay: 0, lineWidth: 6, wobble: 5 },
   drawing: {
     outlineShare: 0.6,     // the outline takes 60% of a drawing, color the rest
   },

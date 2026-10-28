@@ -110,3 +110,56 @@ function drawSketch(ctx, parts, x, y, facing, progress = 1, style = {}) {
   });
   ctx.restore();
 }
+
+// Where the pen tip is at this point in a drawing: tracing the outline,
+// then scribbling side to side along the color line.
+function penPoint(parts, x, y, facing, progress, time) {
+  const s = sketchOf(parts, x, y, facing);
+  const { outline, color } = sketchStages(progress);
+  if (outline < 1) {
+    let ink = outline * s.length;
+    for (const pts of s.loops) {
+      for (let j = 1; j < pts.length; j++) {
+        const [ax, ay] = pts[j - 1], [bx, by] = pts[j];
+        const seg = Math.hypot(bx - ax, by - ay);
+        if (seg >= ink) {
+          const t = seg > 0 ? ink / seg : 0;
+          return { x: ax + (bx - ax) * t, y: ay + (by - ay) * t };
+        }
+        ink -= seg;
+      }
+    }
+  }
+  const sweep = Math.abs(((time * 5) % 2) - 1);
+  return { x: s.left + (s.right - s.left) * sweep, y: s.top + (s.bottom - s.top) * color };
+}
+
+// The shared "being drawn" system (spec section 8). A DrawJob draws one
+// thing (a clown or an item) over `duration` seconds. While it runs, the
+// thing is inactive: it can't move, hurt, be hurt or be picked up. When it
+// finishes, the thing becomes active at once.
+//
+// A drawable thing has x, y, facing, parts(), and gets `active` and
+// `drawProgress` (0 to 1) from here.
+class DrawJob {
+  constructor(thing, duration) {
+    this.thing = thing;
+    this.duration = duration;
+    this.t = 0;
+    thing.active = false;
+    thing.drawProgress = 0;
+  }
+
+  get done() { return this.t >= this.duration; }
+
+  update(dt) {
+    this.t = Math.min(this.duration, this.t + dt);
+    this.thing.drawProgress = this.t / this.duration;
+    if (this.done) this.thing.active = true;
+  }
+
+  tip(time) {
+    const th = this.thing;
+    return penPoint(th.parts(), th.x, th.y, th.facing, th.drawProgress, time);
+  }
+}

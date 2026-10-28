@@ -34,6 +34,7 @@ const Game = {
 
   restart() {
     this.pierre = new Pierre();
+    this.rightHand = new Hand('right');
     this.state = 'play';
     this.loadPanel(0);
   },
@@ -43,8 +44,20 @@ const Game = {
     this.panel = PANELS[index];
     this.surfaces = surfacesOf(this.panel);
     this.clowns = [];
+    this.pies = [];
     this.effects = [];
+    this.defeated = 0;
     this.pierre.placeAtStart();
+
+    // The right hand draws this panel's clowns, one at a time, in order.
+    this.rightHand.reset();
+    for (const spec of this.panel.clowns) {
+      this.rightHand.draw(makeClown(spec, this.surfaces), clown => this.clowns.push(clown));
+    }
+  },
+
+  clownDefeated() {
+    this.defeated++;
   },
 
   // How far right Pierre can go: the ink line on the right edge.
@@ -60,6 +73,11 @@ const Game = {
   update(dt) {
     this.time += dt;
     this.pierre.update(dt, this);
+    this.rightHand.update(dt);
+    for (const c of this.clowns) if (c.active) c.update(dt, this);
+    this.clowns = this.clowns.filter(c => !c.dead);
+    for (const p of this.pies) p.update(dt, this);
+    this.pies = this.pies.filter(p => !p.done);
     for (const e of this.effects) e.t += dt;
     this.effects = this.effects.filter(e => e.t < CONFIG.burstTime);
   },
@@ -78,12 +96,20 @@ const Game = {
     ctx.clip();
     drawPanelBackground(ctx, this.panel);
     drawSurfaces(ctx, this.panel.platforms);
+    for (const c of this.clowns) c.render(ctx);
+    for (const p of this.pies) p.render(ctx);
     this.pierre.render(ctx);
     for (const e of this.effects) drawBurst(ctx, e);
     ctx.restore();
 
     drawPanelFrame(ctx);
     drawHUD(ctx, this);
+
+    // The hands reach in from outside the panel, over everything.
+    ctx.save();
+    ctx.translate(x, y);
+    this.rightHand.render(ctx);
+    ctx.restore();
   },
 };
 
