@@ -20,7 +20,9 @@ class Pierre {
     this.invincible = 0;        // seconds of flashing left after a hit
     this.knockLock = 0;         // seconds of knockback before control returns
     this.punchCooldown = 0;
-    this.punchTimer = 0;        // seconds the punching pose is still shown
+    this.punchTimer = 0;        // seconds left in the swing animation
+    this.strikeIn = 0;          // seconds until the current swing's hit lands
+    this.swingTool = 'beret';   // what the current swing is with: 'beret' or 'hammer'
     this.walkPhase = 0;
   }
 
@@ -32,6 +34,7 @@ class Pierre {
     this.knockLock -= dt;
     this.punchCooldown -= dt;
     this.punchTimer -= dt;
+    if (this.strikeIn > 0 && (this.strikeIn -= dt) <= 0) this.strike(game);
 
     if (this.knockLock <= 0) {
       const dir = (Input.isDown(...KEYS.right) ? 1 : 0) - (Input.isDown(...KEYS.left) ? 1 : 0);
@@ -64,12 +67,24 @@ class Pierre {
 
   get hasHammer() { return this.held && this.held.kind === 'hammer'; }
 
-  // J: a punch, or a swing of the squeaky hammer if he's holding it.
+  // J: Pierre whips off his beret and slaps with it, or swings the
+  // squeaky hammer if he's holding it. The hit lands partway through the
+  // swing (strike).
   punch(game) {
     const c = CONFIG.pierre, hammer = this.hasHammer ? CONFIG.hammer : null;
-    const range = hammer ? hammer.range : c.punchRange;
+    this.swingTool = hammer ? 'hammer' : 'beret';
     this.punchCooldown = hammer ? hammer.cooldown : c.punchCooldown;
     this.punchTimer = hammer ? hammer.show : c.punchShow;
+    this.strikeIn = c.strikeDelay;
+    if (hammer && --this.held.swings <= 0) {
+      this.held = null;
+      game.burst('CRACK!', this.x + this.facing * 50, this.y - 90, '#8d6e63');
+    }
+  }
+
+  strike(game) {
+    const c = CONFIG.pierre, hammer = this.swingTool === 'hammer' ? CONFIG.hammer : null;
+    const range = hammer ? hammer.range : c.punchRange;
     const reach = {
       left: this.facing > 0 ? this.x : this.x - this.w / 2 - range,
       right: this.facing > 0 ? this.x + this.w / 2 + range : this.x,
@@ -84,13 +99,9 @@ class Pierre {
           game.burst('SQUEAK!', clown.x - this.facing * clown.w / 4, y, '#1e88e5');
         } else {
           clown.hurt(c.punchDamage, this.x, game);
-          game.burst('POW!', clown.x - this.facing * clown.w / 4, y);
+          game.burst('SLAP!', clown.x - this.facing * clown.w / 4, y);
         }
       }
-    }
-    if (hammer && --this.held.swings <= 0) {
-      this.held = null;
-      game.burst('CRACK!', this.x + this.facing * 50, this.y - 90, '#8d6e63');
     }
   }
 
@@ -143,7 +154,14 @@ class Pierre {
       frontArm = [[8, -84], [22, -100], [18, -118]];
     } else if (this.punchTimer > 0) {
       backArm = [[-4, -84], [-10, -68], [4, -74]];
-      frontArm = [[8, -84], [30, -84], [52, -83]];
+      if (this.swingTool === 'hammer') {
+        frontArm = [[8, -84], [30, -84], [52, -83]];
+      } else {
+        // The beret slap: the arm sweeps from up behind his head to out in front.
+        const a = slapAngle(this.punchTimer);
+        const elbow = [8 + Math.cos(a - 0.35) * 21, -84 + Math.sin(a - 0.35) * 21];
+        frontArm = [[8, -84], elbow, [elbow[0] + Math.cos(a + 0.1) * 21, elbow[1] + Math.sin(a + 0.1) * 21]];
+      }
     } else if (!this.onGround) {
       backArm = [[-4, -84], [-20, -92], [-24, -108]];
       frontArm = [[8, -84], [24, -94], [30, -110]];
@@ -167,6 +185,17 @@ class Pierre {
       { shape: 'circle', x: hand[0], y: hand[1], r: glove, fill: '#fff' },
     ];
     const up = (parts) => parts.map(p => shiftPart(p, lean, -bob));
+    // While slapping, the beret is in his hand and his bald head shows.
+    const slapping = this.punchTimer > 0 && this.swingTool === 'beret' && !hurt;
+    const beretOn = [
+      { shape: 'circle', x: 1, y: -120, r: 18, ry: 6, fill: INK },
+      { shape: 'circle', x: 1, y: -127, r: 3, fill: INK },
+    ];
+    const beretOff = [
+      { shape: 'line', pts: [[-6, -118], [-3, -125]], lw: 2 },
+      { shape: 'line', pts: [[0, -120], [2, -127]], lw: 2 },
+      { shape: 'line', pts: [[6, -119], [9, -125]], lw: 2 },
+    ];
 
     return up([
       ...arm(backArm, 7),
@@ -181,9 +210,9 @@ class Pierre {
       { shape: 'circle', x: 9, y: -108, r: 1.5, fill: '#fff', flat: true },
       { shape: 'poly', pts: [[13, -100], [15, -96], [13, -93], [11, -96]], fill: INK, flat: true },
       { shape: 'poly', pts: [[6, -92], [17, -93], [12, -88]], fill: '#222', flat: true },
-      { shape: 'circle', x: 1, y: -120, r: 18, ry: 6, fill: INK },
-      { shape: 'circle', x: 1, y: -127, r: 3, fill: INK },
+      ...(slapping ? beretOff : beretOn),
       ...arm(frontArm, this.punchTimer > 0 ? 9 : 7),
+      ...(slapping ? beretInHand(frontArm[2], slapAngle(this.punchTimer)) : []),
       // The hammer: carried angled forward (clear of his face), swung out
       // level when attacking.
       ...(this.hasHammer
@@ -199,6 +228,34 @@ class Pierre {
     if (this.invincible > 0 && Math.floor(this.invincible * 12) % 2 === 1) return;
     drawSketch(ctx, this.parts(), this.x, this.y, this.facing);
   }
+}
+
+// The angle of Pierre's arm during a beret slap, from up behind his head
+// (start) to out in front (end), given the time left in the swing.
+function slapAngle(timeLeft) {
+  const t = 1 - Math.max(0, timeLeft) / CONFIG.pierre.punchShow;
+  return -2.0 + Math.min(1, t * 1.4) * 2.15;
+}
+
+// The beret held flat-on at the end of the arm, with speed lines curving
+// behind it.
+function beretInHand([hx, hy], a) {
+  const cx = hx + Math.cos(a) * 12, cy = hy + Math.sin(a) * 12;
+  const rot = a + Math.PI / 2, pts = [];
+  for (let i = 0; i < 16; i++) {
+    const t = (i / 16) * Math.PI * 2;
+    const ex = Math.cos(t) * 19, ey = Math.sin(t) * 6;
+    pts.push([cx + ex * Math.cos(rot) - ey * Math.sin(rot), cy + ex * Math.sin(rot) + ey * Math.cos(rot)]);
+  }
+  const arc = r => {
+    const out = [];
+    for (let k = 0; k <= 6; k++) {
+      const t = a - 1.1 + (k / 6) * 0.9;
+      out.push([8 + Math.cos(t) * r, -84 + Math.sin(t) * r]);
+    }
+    return { shape: 'line', pts: out, lw: 2.5 };
+  };
+  return [arc(56), arc(66), { shape: 'poly', pts, fill: INK }];
 }
 
 // A copy of a part moved by (dx, dy).

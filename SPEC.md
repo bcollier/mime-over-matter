@@ -232,6 +232,8 @@ The first playable version (sections 1 to 8) was too short and too repetitive: 6
 - **Jump kick:** J in the air kicks forward and down.
 - **Hit feel:** a short freeze on every hit, a screen shake on finishers, and clowns stagger when hit.
 - All items in 5.6 (hammer, knives, balloon sword, pogo stick, slinky) are part of the main game, not stretch.
+- **Beret slap** (added after the second playtest): Pierre's basic attack is not a punch. He whips off his beret and slaps the clown with it ("SLAP!"), his bald head showing until the beret is back on.
+- **Knocking noses off** (added after the second playtest): a hit that doesn't defeat a clown sometimes knocks its red nose off. The nose bounces away, and the clown freaks out ("MY NOSE!"), stops attacking and tries to get the nose and put it back on. If it can't reach the nose, it eventually gives up and fights on without it.
 
 ### 9.4 Mime powers
 Pierre's mime routines work for real inside the comic. Each power has its own cooldown, shown in the HUD.
@@ -259,6 +261,8 @@ The comic ink style is now the target, replacing "simple shapes are fine" in sec
 46. **[P2]** Invisible Rope (U) pulls the nearest clown in front of Pierre toward him, then goes on cooldown.
 47. **[P2]** Invisible Box (I) traps the nearest clown in reach for a few seconds, then goes on cooldown.
 48. **[P3]** Each new clown type appears alone in a panel before it is mixed with others.
+49. **[P2]** J is a beret slap: Pierre takes his beret off and slaps with it, showing "SLAP!". (This replaces the punch in criterion 5.)
+50. **[P2]** A hit that doesn't defeat a clown sometimes knocks its nose off. The clown panics (stops attacking, "MY NOSE!"), goes after the nose, and puts it back on if it can reach it.
 
 ### 9.8 Build order for the expansion
 1. Level dimensionality and obstacles on the existing panels (40, 41), since flat panels were the biggest complaint.

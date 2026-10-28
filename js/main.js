@@ -53,6 +53,7 @@ const Game = {
     this.clowns = [];
     this.items = [];
     this.pies = [];
+    this.noses = [];
     this.effects = [];
     this.defeated = 0;
     this.pierre.placeAtStart();
@@ -171,6 +172,8 @@ const Game = {
     this.clowns = this.clowns.filter(c => !c.dead);
     for (const p of this.pies) p.update(dt, this);
     this.pies = this.pies.filter(p => !p.done);
+    for (const n of this.noses) n.update(dt, this);
+    this.noses = this.noses.filter(n => !n.gone);
     for (const e of this.effects) e.t += dt;
     this.effects = this.effects.filter(e => e.t < CONFIG.burstTime);
     if (this.pierre.health <= 0) this.state = 'gameover';
@@ -225,6 +228,7 @@ const Game = {
     for (const i of this.items) i.render(ctx);
     for (const c of this.clowns) c.render(ctx);
     for (const p of this.pies) p.render(ctx);
+    for (const n of this.noses) n.render(ctx);
     this.pierre.render(ctx);
     for (const e of this.effects) drawBurst(ctx, e);
     if (this.state === 'gameover') drawGameOver(ctx);

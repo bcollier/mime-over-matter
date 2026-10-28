@@ -2,6 +2,11 @@
 // the Unicyclist rides back and forth and hurts on contact; the Pie Tosser
 // stays put and lobs pies. Clowns are drawn by the right hand and do
 // nothing until `active` (see DrawJob in drawing.js).
+//
+// Any hit that doesn't defeat a clown may knock its red nose off. The
+// clown panics, stops attacking and scrambles after the nose; if it gets
+// there it puts the nose back on. If it can't reach it, it gives up after a
+// while and carries on without it.
 class Clown {
   constructor(spec, surfaces) {
     const cfg = CONFIG.clowns[spec.type];
@@ -20,6 +25,16 @@ class Clown {
     this.hitFlash = 0;
     this.stun = 0;
     this.anim = 0;
+    this.nose = null;       // the Nose it's chasing, while it panics
+    this.noseless = false;  // gave up on its nose
+    this.bubble = null;     // { text, t }: a speech bubble
+    this.greeted = false;
+  }
+
+  get panicking() { return !!this.nose; }
+
+  say(text) {
+    this.bubble = { text, t: CONFIG.clowns.bubbleTime };
   }
 
   get box() { return boxOf(this); }
@@ -34,23 +49,98 @@ class Clown {
     this.x = Math.max(this.surface.x + this.w / 2, Math.min(this.surface.x + this.surface.w - this.w / 2, this.x));
     if (this.health <= 0) {
       this.dead = true;
+      if (this.nose) this.nose.gone = true;
       game.clownDefeated(this);
+    } else if (!this.nose && !this.noseless && Math.random() < c.noseChance) {
+      this.knockNose(game, fromX);
     }
+  }
+
+  // The nose pops off and bounces away from the hit.
+  knockNose(game, fromX) {
+    const part = this.parts().find(p => p.tag === 'nose');
+    const n = CONFIG.nose, [lo, hi] = n.launchSide;
+    const away = this.x < fromX ? -1 : 1;
+    this.nose = new Nose(this.x + part.x * this.facing, this.y + part.y + n.r,
+      away * (lo + Math.random() * (hi - lo)), -n.launchUp);
+    this.panicTime = 0;
+    game.noses.push(this.nose);
+    game.burst('POP!', this.x + part.x * this.facing, this.y + part.y, '#e53935');
+    this.say('MY NOSE!');
+  }
+
+  // Panicking: run to the nose if it has landed on this clown's own
+  // surface, put it back on, and stop panicking.
+  chaseNose(dt, game) {
+    const n = this.nose, c = CONFIG.clowns;
+    this.panicTime += dt;
+    if (!this.bubble || this.bubble.t < 0.3) this.say('MY NOSE!');
+    if (!n.resting) return;
+    if (n.surface !== this.surface) {
+      if (this.panicTime > c.noseGiveUp) {
+        this.nose = null;
+        this.noseless = true;
+        this.say('GRR!');
+      }
+      return;
+    }
+    const half = this.w / 2, s = this.surface;
+    const target = Math.max(s.x + half, Math.min(s.x + s.w - half, game.rightLimit() - half, n.x));
+    const dx = target - this.x, step = c.chaseSpeed[this.type] * dt;
+    this.facing = dx < 0 ? -1 : 1;
+    if (this.wheel !== undefined) this.wheel += step / 24;
+    if (Math.abs(dx) > step) {
+      this.x += Math.sign(dx) * step;
+    } else if (Math.abs(n.x - target) < 1) {
+      this.x = target;
+      n.gone = true;
+      this.nose = null;
+      this.say('HONK!');
+    } else if (this.panicTime > c.noseGiveUp) {
+      this.nose = null;      // the nose is past where this clown can go
+      this.noseless = true;
+      this.say('GRR!');
+    }
+  }
+
+  // The parts to show: no nose while it's off.
+  visibleParts() {
+    const parts = this.parts();
+    return this.nose || this.noseless ? parts.filter(p => p.tag !== 'nose') : parts;
   }
 
   update(dt, game) {
     this.anim += dt;
     this.hitFlash -= dt;
     this.stun -= dt;
-    if (this.stun <= 0) this.act(dt, game);
+    if (this.bubble && (this.bubble.t -= dt) <= 0) this.bubble = null;
+    if (!this.greeted) {
+      this.greeted = true;   // a shout as it comes to life (spec 5.3)
+      const shouts = CONFIG.clowns.shouts;
+      this.say(shouts[Math.floor(Math.random() * shouts.length)]);
+    }
+    if (this.stun > 0) return;
+    if (this.nose) this.chaseNose(dt, game);
+    else this.act(dt, game);
   }
 
   render(ctx) {
     ctx.save();
     if (this.hitFlash > 0 && Math.floor(this.hitFlash * 30) % 2 === 0) ctx.globalAlpha = 0.35;
-    drawSketch(ctx, this.parts(), this.x, this.y, this.facing,
+    const shake = this.panicking ? Math.sin(this.anim * 45) * 2 : 0;
+    drawSketch(ctx, this.visibleParts(), this.x + shake, this.y, this.facing,
       this.active ? 1 : this.drawProgress, { lineWidth: CONFIG.rightHand.lineWidth });
     ctx.restore();
+    if (this.panicking) {
+      // Sweat drops flying off its head.
+      for (let i = 0; i < 3; i++) {
+        const t = (this.anim * 2 + i / 3) % 1;
+        const side = i - 1;
+        const drop = [{ shape: 'poly', pts: [[0, -12], [5, -3], [0, 2], [-5, -3]], fill: '#81d4fa', flat: true }];
+        drawSketch(ctx, drop, this.x + side * (22 + t * 24), this.y - this.h + 10 - t * 20 + t * t * 40, 1, 1, { lineWidth: 2 });
+      }
+    }
+    if (this.bubble) drawSpeechBubble(ctx, this.x, this.y - this.h - 40, this.bubble.text);
   }
 }
 
@@ -79,6 +169,7 @@ class Unicyclist extends Clown {
   parts() {
     const a = this.wheel;
     const wobble = Math.sin(this.anim * 6) * 4;
+    const panic = this.panicking, flail = Math.sin(this.anim * 22) * 8;
     const suit = '#e53935';
     const pedal = k => [Math.cos(a + k) * 12, -24 + Math.sin(a + k) * 12];
     const leg = (hipX, k, fill) => {
@@ -102,7 +193,7 @@ class Unicyclist extends Clown {
       ruff.push([Math.cos(t) * r, -108 - Math.sin(t) * r * 0.35]);
     }
     return [
-      ...arm(-16, -34, -46, -wobble),
+      ...arm(-16, -34, -46, panic ? -40 + flail : -wobble),
       ...leg(-4, Math.PI, '#1565c0'),
       { shape: 'circle', x: 0, y: -24, r: 24, fill: '#2b2b2b' },
       { shape: 'circle', x: 0, y: -24, r: 17, fill: '#ffd600' },
@@ -121,11 +212,13 @@ class Unicyclist extends Clown {
       { shape: 'circle', x: 0, y: -128, r: 17, ry: 18, fill: '#fff', shade: 0.1 },
       { shape: 'poly', pts: [[6, -141], [10, -134], [6, -127], [2, -134]], fill: '#42a5f5', flat: true },
       { shape: 'line', pts: [[6, -137], [6, -131]], lw: 3 },
-      { shape: 'poly', pts: [[-6, -118], [6, -120], [16, -124], [12, -114], [0, -112]], fill: '#c62828', flat: true },
-      { shape: 'circle', x: 14, y: -127, r: 7, fill: '#e53935' },
+      panic
+        ? { shape: 'circle', x: 5, y: -116, r: 5, ry: 6, fill: '#5d0000', flat: true }
+        : { shape: 'poly', pts: [[-6, -118], [6, -120], [16, -124], [12, -114], [0, -112]], fill: '#c62828', flat: true },
+      { shape: 'circle', x: 14, y: -127, r: 7, fill: '#e53935', tag: 'nose' },
       { shape: 'poly', pts: [[-9, -149], [9, -149], [3, -172]], fill: '#43a047' },
       { shape: 'circle', x: 3, y: -173, r: 4, fill: '#fff', flat: true },
-      ...arm(14, 34, 48, wobble),
+      ...arm(14, 34, 48, panic ? -40 - flail : wobble),
     ];
   }
 }
@@ -166,11 +259,13 @@ class PieTosser extends Clown {
     const windup = this.active && this.throwTimer < cfg.windup;
     const reloaded = !this.active || this.throwTimer < cfg.throwEvery - 0.4;
     const sleeve = '#43a047', pants = '#7e57c2';
+    const panic = this.panicking, flail = Math.sin(this.anim * 22) * 8;
     const glove = (x, y) => ({ shape: 'circle', x, y, r: 8, fill: '#fff' });
+    const backArm = panic
+      ? [limb(-22, -96, -40, -114, 13, 12, sleeve), limb(-40, -114, -36, -136 + flail, 12, 11, sleeve), glove(-36, -138 + flail)]
+      : [limb(-22, -96, -38, -76, 13, 12, sleeve), limb(-38, -76, -32, -56, 12, 11, sleeve), glove(-32, -54)];
     const parts = [
-      limb(-22, -96, -38, -76, 13, 12, sleeve),
-      limb(-38, -76, -32, -56, 12, 11, sleeve),
-      glove(-32, -54),
+      ...backArm,
       limb(-11, -50, -15, -12, 18, 15, pants),
       limb(11, -50, 17, -12, 18, 15, pants),
       { shape: 'circle', x: -18, y: -7, r: 19, ry: 8, fill: '#e53935' },
@@ -183,12 +278,16 @@ class PieTosser extends Clown {
       { shape: 'circle', x: 0, y: -122, r: 18, ry: 19, fill: '#fff', shade: 0.1 },
       { shape: 'poly', pts: [[7, -135], [11, -128], [7, -121], [3, -128]], fill: '#ab47bc', flat: true },
       { shape: 'line', pts: [[7, -131], [7, -125]], lw: 3 },
-      { shape: 'poly', pts: [[-4, -112], [14, -114], [10, -106], [0, -106]], fill: '#c62828', flat: true },
-      { shape: 'circle', x: 15, y: -121, r: 7, fill: '#e53935' },
+      panic
+        ? { shape: 'circle', x: 5, y: -109, r: 5, ry: 6, fill: '#5d0000', flat: true }
+        : { shape: 'poly', pts: [[-4, -112], [14, -114], [10, -106], [0, -106]], fill: '#c62828', flat: true },
+      { shape: 'circle', x: 15, y: -121, r: 7, fill: '#e53935', tag: 'nose' },
       { shape: 'circle', x: 0, y: -141, r: 13, ry: 11, fill: '#424242' },
       { shape: 'rect', x: -21, y: -138, w: 42, h: 5, fill: '#424242', flat: true },
     ];
-    if (windup) {
+    if (panic) {
+      parts.push(limb(22, -96, 40, -114, 13, 12, sleeve), limb(40, -114, 36, -136 - flail, 12, 11, sleeve), glove(36, -138 - flail));
+    } else if (windup) {
       parts.push(limb(22, -96, 36, -114, 13, 12, sleeve), limb(36, -114, 40, -134, 12, 11, sleeve));
       parts.push(...pieParts(42, -144), glove(40, -134));
     } else {
@@ -213,6 +312,51 @@ function pieParts(x, y) {
     { shape: 'circle', x, y: y - 3, r: 14, ry: 7, fill: '#fff8e1' },
     { shape: 'circle', x: x + 3, y: y - 9, r: 4, fill: '#e53935', flat: true },
   ];
+}
+
+// A clown's red rubber nose, knocked off. It bounces until it comes to
+// rest on a surface; its clown may come and get it (`gone` once it does).
+class Nose {
+  constructor(x, y, vx, vy) {
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.w = this.h = CONFIG.nose.r * 2;
+    this.resting = false;
+    this.surface = null;
+    this.gone = false;
+    this.spin = 0;
+  }
+
+  update(dt, game) {
+    if (this.resting) return;
+    const prevY = this.y, fallSpeed = this.vy + CONFIG.gravity * dt;
+    this.vy = fallSpeed;
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.spin += this.vx * dt / CONFIG.nose.r;
+    const r = CONFIG.nose.r, right = Math.min(CONFIG.panel.w, game.rightLimit()) - r;
+    if (this.x < r || this.x > right) {
+      this.x = Math.max(r, Math.min(right, this.x));
+      this.vx = -this.vx * 0.6;
+    }
+    const s = landOn(this, prevY, game.surfaces);
+    if (s) {
+      if (fallSpeed > 220) {
+        this.vy = -fallSpeed * CONFIG.nose.bounce;
+        this.vx *= 0.7;
+      } else {
+        this.resting = true;
+        this.surface = s;
+      }
+    }
+  }
+
+  render(ctx) {
+    const r = CONFIG.nose.r;
+    drawSketch(ctx, [{ shape: 'circle', x: 0, y: -r, r, fill: '#e53935' }], this.x, this.y, 1, 1, { lineWidth: 3 });
+  }
 }
 
 // A pie in flight. It splats on whatever it hits: Pierre, a platform, the

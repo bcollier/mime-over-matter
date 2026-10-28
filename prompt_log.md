@@ -173,3 +173,18 @@ To keep the code tidy, the AI made a shared `Item` base class for the sandwich a
 the transitions in between levels should have a cool animation like you are moving between panels in a comic. like a zoom out and look at all the panels, then zoom in or omsething
 ```
 **What came back:** a page turn between panels (new file `js/page.js`). When Pierre walks off the edge, the game freezes and the camera zooms out to the whole comic page ("BIG TOP BRAWL · PAGE 1"). Cleared panels show as Pierre left them, and panels ahead are faded. A dotted reading arrow draws across the gutter to the next panel, then the camera zooms into it, with the panel border growing to become the real one. The AI's screenshots showed the arrowhead sitting in the middle of the next panel at the end of the zoom, so it now stops at the panel edges and fades out. This also covers most of criterion 38.
+
+### Prompt 16
+```
+the punching is boring, perhaps he takes his hat off and slaps the clowns with his hat? it would also be great to slap the red nose off a clown, if you hit a clown somtimes the nose falls off and he freaks out and tries to get it and put it back on
+```
+**What came back:**
+- **Beret slap:** J is now a beret slap instead of a punch. Pierre whips off his beret and swings it in an arc from behind his head, with speed lines, while his bald head shows three hairs. The hit lands partway through the swing with "SLAP!".
+- **Noses:** a hit that doesn't finish a clown has about a 1 in 3 chance to pop its nose off ("POP!"). The nose bounces away. The clown stops attacking, throws its arms up, shakes, sweats and says "MY NOSE!", then scrambles after the nose. It puts the nose back with a "HONK!", or gives up with a "GRR!" if the nose landed where it can't reach.
+- **Speech bubbles:** the same bubbles let clowns shout when they come to life (criterion 13).
+- **Spec:** the AI added my two ideas to section 9.3 as criteria 49 and 50.
+
+### Prompt 17 (sent while the AI was building the slap)
+```
+ok keep doing small cycles of knocking things off the P2 list etc and checking with me
+```

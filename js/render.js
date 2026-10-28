@@ -305,6 +305,36 @@ function drawCaption(ctx, lines, x = 14, y = 14) {
   ctx.restore();
 }
 
+// A white speech bubble with a tail pointing down to the speaker at
+// (x, y + bubble height). Kept inside the panel.
+function drawSpeechBubble(ctx, x, y, text) {
+  ctx.save();
+  ctx.font = `bold 17px ${COMIC_FONT}`;
+  const w = ctx.measureText(text).width + 30, h = 36;
+  const bx = Math.max(w / 2 + 6, Math.min(CONFIG.panel.w - w / 2 - 6, x));
+  const by = Math.max(h / 2 + 6, y);
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x - 9, by + h / 2 - 4);
+  ctx.lineTo(x - 2, by + h / 2 + 18);
+  ctx.lineTo(x + 9, by + h / 2 - 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(bx, by, w / 2, h / 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = INK;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, bx, by + 1);
+  ctx.restore();
+}
+
 // --- Effects and overlays ---
 
 // A comic impact burst: a jagged red and yellow star behind slanted,

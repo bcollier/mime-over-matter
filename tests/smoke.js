@@ -57,6 +57,9 @@ function check(name, ok) {
   if (!ok) failures++;
 }
 
+// Noses only come off when a test asks for it.
+get('CONFIG.clowns.noseChance = 0');
+
 // --- Panel data ---
 const panels = get('PANELS');
 check('6 panels, the last one is THE END', panels.length === 6 && panels[5].theEnd);
@@ -98,8 +101,25 @@ check('the clown is active once drawn', get('Game.clowns[0].active') === true);
 // --- Punching ---
 get('Game.pierre.x = Game.clowns[0].x - 45; Game.pierre.facing = 1; Game.pierre.punchCooldown = 0');
 get('Game.pierre.punch(Game)');
-check('a punch damages a finished clown', get('Game.clowns[0].health') === get('CONFIG.clowns.unicyclist.health') - 1);
-check('a punch shows POW!', get('Game.effects.some(e => e.text === "POW!")'));
+check('the slap has not landed at the start of the swing', get('Game.clowns[0].health') === get('CONFIG.clowns.unicyclist.health'));
+run(0.15);
+check('a beret slap damages a finished clown', get('Game.clowns[0].health') === get('CONFIG.clowns.unicyclist.health') - 1);
+check('a beret slap shows SLAP!', get('Game.effects.some(e => e.text === "SLAP!")'));
+
+// --- Knocking a nose off ---
+get('Game.loadPanel(0); Game.pierre.hurt = () => false; CONFIG.clowns.noseChance = 1');
+run(3.2);
+get('const u = Game.clowns[0]; Game.pierre.x = u.x - 45; Game.pierre.facing = 1; Game.pierre.punchCooldown = 0; Game.pierre.punch(Game)');
+run(0.15);
+get('CONFIG.clowns.noseChance = 0');
+check('a hit can knock the nose off: the clown panics', get('Game.noses.length === 1 && Game.clowns[0].panicking'));
+check('the panicking clown says MY NOSE!', get('Game.clowns[0].bubble && Game.clowns[0].bubble.text') === 'MY NOSE!');
+get('Game.pierre.x = 40');
+run(4);
+check('the clown gets its nose back on', get('Game.noses.length === 0 && !Game.clowns[0].panicking && !Game.clowns[0].noseless'));
+get('delete Game.pierre.hurt');
+get('Game.loadPanel(0)');
+run(3.2);
 
 // --- The gate opens when the panel is clear ---
 check('the gate is closed while a clown is alive', get('Game.gateOpen') === false);
@@ -145,6 +165,7 @@ run(1 / 60);
 check('touching the hammer picks it up with 10 swings', get('Game.pierre.hasHammer && Game.pierre.held.swings === 10'));
 run(3);
 get('const c = Game.clowns.find(c => c.active && c.type === "pieTosser"); Game.pierre.x = c.x - 70; Game.pierre.y = c.y; Game.pierre.facing = 1; Game.pierre.punchCooldown = 0; Game.effects = []; Game.pierre.punch(Game)');
+run(0.15);
 check('a hammer hit does 3 damage and shows SQUEAK!',
   get('Game.clowns.some(c => c.type === "pieTosser" && c.health === 1)') && get('Game.effects.some(e => e.text === "SQUEAK!")'));
 check('each swing uses one', get('Game.pierre.held.swings') === 9);

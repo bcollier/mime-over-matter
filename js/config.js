@@ -15,10 +15,11 @@ const CONFIG = {
     jumpSpeed: 860,        // jumps about 185 px high
     jumpCut: 0.45,         // upward speed kept when Jump is let go early
     maxHealth: 10,         // about ten hits
-    punchDamage: 1,
-    punchRange: 38,        // reach in front of his body
+    punchDamage: 1,        // the beret slap (it replaces a plain punch)
+    punchRange: 48,        // reach in front of his body, beret included
     punchCooldown: 0.3,
-    punchShow: 0.14,       // how long the arm stays out
+    punchShow: 0.2,        // how long the swing animation lasts
+    strikeDelay: 0.1,      // the hit lands this far into a swing
     invincible: 1.0,       // flashing after a hit
     knockbackX: 300,
     knockbackY: 320,
@@ -30,7 +31,13 @@ const CONFIG = {
     hitFlash: 0.2,         // a hit clown flickers for this long
     hitStun: 0.25,         // and stops moving for this long
     hitPush: 12,           // and gets pushed back this far
+    noseChance: 0.35,      // chance a hit that doesn't defeat a clown knocks its nose off
+    noseGiveUp: 5,         // a clown that can't reach its nose gives up after this long
+    chaseSpeed: { unicyclist: 220, pieTosser: 120 },   // scrambling after a lost nose
+    shouts: ['HONK!', 'HAW HAW!', 'NICE FACE PAINT!', 'SAY SOMETHING!'],
+    bubbleTime: 1.4,       // how long a speech bubble stays up
   },
+  nose: { r: 7, bounce: 0.45, launchUp: 480, launchSide: [80, 160] },
   pie: {
     w: 30, h: 14,
     damage: 1,
